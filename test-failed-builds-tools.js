@@ -2,18 +2,18 @@
 
 /**
  * Quick test script for the new failed pipeline analysis tools
- * 
+ *
  * Usage:
  * 1. Create .env.local file with your configuration (see .env.example)
  * 2. Run the script:
  *    node test-failed-builds-tools.js [project-name]
- * 
+ *
  * The project name is optional if you set DEFAULT_PROJECT in .env.local
  */
 
 import { configureBuildTools } from './dist/tools/builds.js';
 import { loadTestConfig, getConfigSummary } from './dist/config.js';
-import { WebApi } from 'azure-devops-node-api';
+import { WebApi, getPersonalAccessTokenHandler } from 'azure-devops-node-api';
 
 // Load configuration
 let config;
@@ -50,12 +50,15 @@ const mockServer = {
 };
 
 // Set up Azure DevOps connection
-const tokenProvider = async () => ({ 
-  token: config.azureDevOpsPat, 
-  expiresOnTimestamp: Date.now() + 3600000 
+const tokenProvider = async () => ({
+  token: config.azureDevOpsPat,
+  expiresOnTimestamp: Date.now() + 3600000
 });
 
-const connectionProvider = async () => new WebApi(config.azureDevOpsOrgUrl, { accessToken: config.azureDevOpsPat });
+const connectionProvider = async () => {
+  const authHandler = getPersonalAccessTokenHandler(config.azureDevOpsPat);
+  return new WebApi(config.azureDevOpsOrgUrl, authHandler);
+};
 
 // Configure the build tools
 console.log('\n🔧 Configuring build tools...');
@@ -67,7 +70,7 @@ async function runTest(toolName, params, description) {
   console.log(`🔧 Tool: ${toolName}`);
   console.log(`📋 Parameters: ${JSON.stringify(params, null, 2)}`);
   console.log('⏳ Running...');
-  
+
   const tool = mockServer.tools.get(toolName);
   if (!tool) {
     console.error(`❌ Tool ${toolName} not found`);
@@ -77,11 +80,11 @@ async function runTest(toolName, params, description) {
   try {
     const result = await tool.handler(params);
     console.log('✅ Success!');
-    
+
     // Parse the result to show summary
     const content = result.content[0].text;
     const data = JSON.parse(content);
-    
+
     if (Array.isArray(data)) {
       console.log(`📈 Found ${data.length} results`);
       if (data.length > 0) {
@@ -96,7 +99,7 @@ async function runTest(toolName, params, description) {
     } else {
       console.log(`📄 Result type: ${typeof data}`);
     }
-    
+
     // Option to save full results
     if (process.env.SAVE_RESULTS === 'true') {
       const fs = await import('fs');
@@ -104,7 +107,7 @@ async function runTest(toolName, params, description) {
       fs.writeFileSync(filename, content, 'utf8');
       console.log(`💾 Full results saved to: ${filename}`);
     }
-    
+
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
     if (process.env.DEBUG === 'true') {
@@ -116,7 +119,7 @@ async function runTest(toolName, params, description) {
 // Run tests
 async function runAllTests() {
   console.log('\n🚀 Starting tests...');
-  
+
   // Test 1: Basic failed builds
   await runTest('build_get_failed_builds', {
     project: projectName,

@@ -127,7 +127,7 @@ export AZURE_DEVOPS_PAT="your-personal-access-token"
 **Specific pipeline failures:**
 ```json
 {
-  "project": "YourProject", 
+  "project": "YourProject",
   "definitions": [123, 456],
   "includePartiallySucceeded": true
 }
@@ -148,7 +148,7 @@ export AZURE_DEVOPS_PAT="your-personal-access-token"
 - Array of build objects with basic information
 - Filtered to only show Failed builds (and optionally PartiallySucceeded/Canceled)
 
-### build_get_failed_builds_detailed  
+### build_get_failed_builds_detailed
 - Same as above but with additional `buildReport` and `buildLogs` properties
 - More detailed error information
 

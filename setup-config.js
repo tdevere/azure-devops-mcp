@@ -43,14 +43,14 @@ async function setup() {
   const orgUrl = await question('Azure DevOps Organization URL (e.g., https://dev.azure.com/myorg): ');
   const pat = await question('Personal Access Token (with Build read permissions): ');
   const defaultProject = await question('Default Project Name (optional): ');
-  
+
   console.log();
   console.log('Optional settings (press Enter to use defaults):');
-  
+
   const maxBuilds = await question('Max builds to analyze per test (default: 10): ') || '10';
   const includeLogs = await question('Include logs by default? (y/N): ');
   const pipelineIds = await question('Specific pipeline definition IDs (comma-separated, optional): ');
-  
+
   // Create configuration content
   const config = [
     '# Private Configuration File',

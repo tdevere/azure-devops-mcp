@@ -22,7 +22,7 @@ This will guide you through creating your `.env.local` file.
    AZURE_DEVOPS_ORG_URL=https://dev.azure.com/your-organization
    AZURE_DEVOPS_PAT=your-personal-access-token-here
    DEFAULT_PROJECT=YourProjectName
-   
+
    # Optional settings
    MAX_BUILDS_TO_ANALYZE=10
    INCLUDE_LOGS_BY_DEFAULT=false
