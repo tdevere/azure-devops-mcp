@@ -375,7 +375,7 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
     async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled }) => {
       const connection = await connectionProvider();
       const buildApi = await connection.getBuildApi();
-      
+
       // Build result filter for failed builds
       let resultFilter = BuildResult.Failed;
       if (includePartiallySucceeded && includeCanceled) {
@@ -428,7 +428,7 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
     async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled, includeLogs }) => {
       const connection = await connectionProvider();
       const buildApi = await connection.getBuildApi();
-      
+
       // Build result filter for failed builds
       let resultFilter = BuildResult.Failed;
       if (includePartiallySucceeded && includeCanceled) {
@@ -515,7 +515,7 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
     async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled, includeSummary }) => {
       const connection = await connectionProvider();
       const buildApi = await connection.getBuildApi();
-      
+
       // Build result filter for failed builds
       let resultFilter = BuildResult.Failed;
       if (includePartiallySucceeded && includeCanceled) {
@@ -527,7 +527,7 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
       }
 
       let targetDefinitions = definitions;
-      
+
       // If no specific definitions provided, get all definitions first
       if (!targetDefinitions) {
         const allDefinitions = await buildApi.getDefinitions(project);
@@ -603,7 +603,7 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
           if (builds.length > 0) {
             // Get definition details
             const definition = await buildApi.getDefinition(project, definitionId);
-            
+
             result.failureAnalysis[definitionId] = {
               definitionName: definition.name,
               definitionPath: definition.path,
