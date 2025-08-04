@@ -5,7 +5,7 @@ import { AccessToken } from "@azure/identity";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { apiVersion, getEnumKeys, safeEnumConvert } from "../utils.js";
 import { WebApi } from "azure-devops-node-api";
-import { BuildQueryOrder, DefinitionQueryOrder } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
+import { BuildQueryOrder, DefinitionQueryOrder, BuildResult } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
 import { z } from "zod";
 import { StageUpdateType } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
 
@@ -19,6 +19,9 @@ const BUILD_TOOLS = {
   run_build: "build_run_build",
   get_status: "build_get_status",
   update_build_stage: "build_update_build_stage",
+  get_failed_builds: "build_get_failed_builds",
+  get_failed_builds_detailed: "build_get_failed_builds_detailed",
+  get_failed_builds_by_definition: "build_get_failed_builds_by_definition",
 };
 
 function configureBuildTools(server: McpServer, tokenProvider: () => Promise<AccessToken>, connectionProvider: () => Promise<WebApi>) {
@@ -353,6 +356,285 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
 
       return {
         content: [{ type: "text", text: JSON.stringify(updatedBuild, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    BUILD_TOOLS.get_failed_builds,
+    "Retrieves a list of failed builds across all pipelines in a project.",
+    {
+      project: z.string().describe("Project ID or name to get failed builds for"),
+      definitions: z.array(z.number()).optional().describe("Array of build definition IDs to filter builds"),
+      top: z.number().optional().default(50).describe("Maximum number of failed builds to return (default: 50)"),
+      minTime: z.coerce.date().optional().describe("Minimum finish time to filter builds"),
+      maxTime: z.coerce.date().optional().describe("Maximum finish time to filter builds"),
+      includePartiallySucceeded: z.boolean().optional().default(false).describe("Include partially succeeded builds as failures"),
+      includeCanceled: z.boolean().optional().default(false).describe("Include canceled builds as failures"),
+    },
+    async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled }) => {
+      const connection = await connectionProvider();
+      const buildApi = await connection.getBuildApi();
+      
+      // Build result filter for failed builds
+      let resultFilter = BuildResult.Failed;
+      if (includePartiallySucceeded && includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded | BuildResult.Canceled;
+      } else if (includePartiallySucceeded) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded;
+      } else if (includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.Canceled;
+      }
+
+      const builds = await buildApi.getBuilds(
+        project,
+        definitions,
+        undefined, // queues
+        undefined, // buildNumber
+        minTime,
+        maxTime,
+        undefined, // requestedFor
+        undefined, // reasonFilter
+        undefined, // statusFilter
+        resultFilter,
+        undefined, // tagFilters
+        undefined, // properties
+        top,
+        undefined, // continuationToken
+        undefined, // maxBuildsPerDefinition
+        undefined, // deletedFilter
+        BuildQueryOrder.QueueTimeDescending
+      );
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(builds, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    BUILD_TOOLS.get_failed_builds_detailed,
+    "Retrieves detailed information about failed builds including logs and error details.",
+    {
+      project: z.string().describe("Project ID or name to get failed builds for"),
+      definitions: z.array(z.number()).optional().describe("Array of build definition IDs to filter builds"),
+      top: z.number().optional().default(10).describe("Maximum number of failed builds to analyze in detail (default: 10)"),
+      minTime: z.coerce.date().optional().describe("Minimum finish time to filter builds"),
+      maxTime: z.coerce.date().optional().describe("Maximum finish time to filter builds"),
+      includePartiallySucceeded: z.boolean().optional().default(false).describe("Include partially succeeded builds as failures"),
+      includeCanceled: z.boolean().optional().default(false).describe("Include canceled builds as failures"),
+      includeLogs: z.boolean().optional().default(true).describe("Include build logs in the detailed output"),
+    },
+    async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled, includeLogs }) => {
+      const connection = await connectionProvider();
+      const buildApi = await connection.getBuildApi();
+      
+      // Build result filter for failed builds
+      let resultFilter = BuildResult.Failed;
+      if (includePartiallySucceeded && includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded | BuildResult.Canceled;
+      } else if (includePartiallySucceeded) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded;
+      } else if (includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.Canceled;
+      }
+
+      const builds = await buildApi.getBuilds(
+        project,
+        definitions,
+        undefined, // queues
+        undefined, // buildNumber
+        minTime,
+        maxTime,
+        undefined, // requestedFor
+        undefined, // reasonFilter
+        undefined, // statusFilter
+        resultFilter,
+        undefined, // tagFilters
+        undefined, // properties
+        top,
+        undefined, // continuationToken
+        undefined, // maxBuildsPerDefinition
+        undefined, // deletedFilter
+        BuildQueryOrder.QueueTimeDescending
+      );
+
+      const detailedBuilds = [];
+      for (const build of builds) {
+        const buildDetail: {
+          [key: string]: unknown;
+          buildReport?: unknown;
+          buildLogs?: unknown;
+        } = {
+          ...build,
+          buildReport: undefined,
+          buildLogs: undefined,
+        };
+
+        try {
+          // Get build report for additional details
+          if (build.id) {
+            buildDetail.buildReport = await buildApi.getBuildReport(project, build.id);
+          }
+        } catch (error) {
+          buildDetail.buildReport = { error: `Failed to get build report: ${error}` };
+        }
+
+        if (includeLogs && build.id) {
+          try {
+            // Get build logs
+            const logs = await buildApi.getBuildLogs(project, build.id);
+            buildDetail.buildLogs = logs;
+          } catch (error) {
+            buildDetail.buildLogs = { error: `Failed to get build logs: ${error}` };
+          }
+        }
+
+        detailedBuilds.push(buildDetail);
+      }
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(detailedBuilds, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    BUILD_TOOLS.get_failed_builds_by_definition,
+    "Retrieves failed builds grouped by build definition, showing failure patterns across pipelines.",
+    {
+      project: z.string().describe("Project ID or name to get failed builds for"),
+      definitions: z.array(z.number()).optional().describe("Array of specific build definition IDs to analyze"),
+      top: z.number().optional().default(10).describe("Maximum number of failed builds per definition to return (default: 10)"),
+      minTime: z.coerce.date().optional().describe("Minimum finish time to filter builds"),
+      maxTime: z.coerce.date().optional().describe("Maximum finish time to filter builds"),
+      includePartiallySucceeded: z.boolean().optional().default(false).describe("Include partially succeeded builds as failures"),
+      includeCanceled: z.boolean().optional().default(false).describe("Include canceled builds as failures"),
+      includeSummary: z.boolean().optional().default(true).describe("Include failure summary statistics per definition"),
+    },
+    async ({ project, definitions, top, minTime, maxTime, includePartiallySucceeded, includeCanceled, includeSummary }) => {
+      const connection = await connectionProvider();
+      const buildApi = await connection.getBuildApi();
+      
+      // Build result filter for failed builds
+      let resultFilter = BuildResult.Failed;
+      if (includePartiallySucceeded && includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded | BuildResult.Canceled;
+      } else if (includePartiallySucceeded) {
+        resultFilter = BuildResult.Failed | BuildResult.PartiallySucceeded;
+      } else if (includeCanceled) {
+        resultFilter = BuildResult.Failed | BuildResult.Canceled;
+      }
+
+      let targetDefinitions = definitions;
+      
+      // If no specific definitions provided, get all definitions first
+      if (!targetDefinitions) {
+        const allDefinitions = await buildApi.getDefinitions(project);
+        targetDefinitions = allDefinitions.map(def => def.id).filter((id): id is number => id !== undefined);
+      }
+
+      interface FailureAnalysisResult {
+        project: string;
+        failureAnalysis: Record<string, {
+          definitionName?: string;
+          definitionPath?: string;
+          failedBuilds?: unknown[];
+          failureCount?: number;
+          lastFailure?: Date;
+          failureReasons?: {
+            buildId?: number;
+            buildNumber?: string;
+            result?: unknown;
+            finishTime?: Date;
+            reason?: unknown;
+            sourceBranch?: string;
+            sourceVersion?: string;
+          }[];
+          error?: string;
+        }>;
+        summary?: {
+          totalDefinitions: number;
+          definitionsWithFailures: number;
+          totalFailedBuilds: number;
+          analysisTimeRange: {
+            minTime?: string;
+            maxTime?: string;
+          };
+        } | null;
+      }
+
+      const result: FailureAnalysisResult = {
+        project,
+        failureAnalysis: {},
+        summary: includeSummary ? {
+          totalDefinitions: targetDefinitions.length,
+          definitionsWithFailures: 0,
+          totalFailedBuilds: 0,
+          analysisTimeRange: {
+            minTime: minTime?.toISOString(),
+            maxTime: maxTime?.toISOString()
+          }
+        } : null
+      };
+
+      for (const definitionId of targetDefinitions) {
+        try {
+          const builds = await buildApi.getBuilds(
+            project,
+            [definitionId],
+            undefined, // queues
+            undefined, // buildNumber
+            minTime,
+            maxTime,
+            undefined, // requestedFor
+            undefined, // reasonFilter
+            undefined, // statusFilter
+            resultFilter,
+            undefined, // tagFilters
+            undefined, // properties
+            top,
+            undefined, // continuationToken
+            undefined, // maxBuildsPerDefinition
+            undefined, // deletedFilter
+            BuildQueryOrder.QueueTimeDescending
+          );
+
+          if (builds.length > 0) {
+            // Get definition details
+            const definition = await buildApi.getDefinition(project, definitionId);
+            
+            result.failureAnalysis[definitionId] = {
+              definitionName: definition.name,
+              definitionPath: definition.path,
+              failedBuilds: builds,
+              failureCount: builds.length,
+              lastFailure: builds[0]?.finishTime,
+              failureReasons: builds.map(build => ({
+                buildId: build.id,
+                buildNumber: build.buildNumber,
+                result: build.result,
+                finishTime: build.finishTime,
+                reason: build.reason,
+                sourceBranch: build.sourceBranch,
+                sourceVersion: build.sourceVersion?.substring(0, 8)
+              }))
+            };
+
+            if (includeSummary && result.summary) {
+              result.summary.definitionsWithFailures++;
+              result.summary.totalFailedBuilds += builds.length;
+            }
+          }
+        } catch (error) {
+          result.failureAnalysis[definitionId] = {
+            error: `Failed to analyze definition ${definitionId}: ${error}`
+          };
+        }
+      }
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     }
   );
