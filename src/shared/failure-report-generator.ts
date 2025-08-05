@@ -3,10 +3,10 @@
 
 import { WebApi } from "azure-devops-node-api";
 import { Build, BuildResult, BuildQueryOrder, TaskResult, TimelineRecord } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
-import { 
-  BuildFailureReport, 
-  FailureSummary, 
-  FailureType, 
+import {
+  BuildFailureReport,
+  FailureSummary,
+  FailureType,
   FailureCategory,
   RootCauseAnalysis,
   TaskFailureAnalysis,
@@ -26,7 +26,7 @@ import {
   TaskLogEntry,
   BuildComparison,
   RiskAssessment,
-  FailureReportOptions 
+  FailureReportOptions
 } from "../shared/report-types.js";
 
 export class BuildFailureReportGenerator {
@@ -39,7 +39,7 @@ export class BuildFailureReportGenerator {
    * Generates a comprehensive failure report for a specific build
    */
   async generateReport(
-    buildId: number, 
+    buildId: number,
     options: Partial<FailureReportOptions> = {}
   ): Promise<BuildFailureReport> {
     const defaultOptions: FailureReportOptions = {
@@ -55,13 +55,13 @@ export class BuildFailureReportGenerator {
 
     const buildApi = await this.connection.getBuildApi();
     const build = await buildApi.getBuild(this.project, buildId);
-    
+
     if (!build) {
       throw new Error(`Build ${buildId} not found`);
     }
 
     const reportId = `failure-report-${buildId}-${Date.now()}`;
-    
+
     // Generate all sections of the report
     const [
       summary,
@@ -99,7 +99,7 @@ export class BuildFailureReportGenerator {
         queueTime: build.queueTime || new Date(),
         startTime: build.startTime,
         finishTime: build.finishTime,
-        duration: build.finishTime && build.startTime ? 
+        duration: build.finishTime && build.startTime ?
           Math.round((build.finishTime.getTime() - build.startTime.getTime()) / 1000) : undefined,
         result: this.getBuildResultString(build.result),
         reason: this.getBuildReasonString(build.reason)
@@ -120,17 +120,17 @@ export class BuildFailureReportGenerator {
 
   private async generateFailureSummary(build: Build, options: FailureReportOptions): Promise<FailureSummary> {
     const buildApi = await this.connection.getBuildApi();
-    
+
     // Analyze failure pattern
     const timeline = await this.getTimelineRecords(build);
     const failureType = this.analyzeFailureType(timeline);
     const failureCategory = this.analyzeFailureCategory(build, timeline);
-    
+
     // Check for recurrent failures
     const recentBuilds = await buildApi.getBuilds(
       this.project,
       [build.definition?.id!],
-      undefined, undefined, 
+      undefined, undefined,
       new Date(Date.now() - options.analyzeTimeWindow * 24 * 60 * 60 * 1000),
       undefined, undefined, undefined, undefined,
       BuildResult.Failed | BuildResult.PartiallySucceeded,
@@ -139,7 +139,7 @@ export class BuildFailureReportGenerator {
     );
 
     const failureFrequency = this.analyzeFailureFrequency(recentBuilds);
-    
+
     return {
       primaryFailureType: failureType,
       failureCategory,
@@ -154,11 +154,11 @@ export class BuildFailureReportGenerator {
   private async generateRootCauseAnalysis(build: Build, options: FailureReportOptions): Promise<RootCauseAnalysis> {
     const timeline = await this.getTimelineRecords(build);
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
-    
+
     const primaryCause = this.identifyPrimaryCause(failedTasks);
     const contributingFactors = this.identifyContributingFactors(timeline, failedTasks);
     const failureStack = this.buildFailureStack(failedTasks);
-    
+
     return {
       primaryCause,
       contributingFactors,
@@ -171,14 +171,12 @@ export class BuildFailureReportGenerator {
 
   private async generateTaskAnalysis(build: Build, options: FailureReportOptions): Promise<TaskFailureAnalysis[]> {
     const timeline = await this.getTimelineRecords(build);
-    const failedTasks = timeline.filter(t => t.result === TaskResult.Failed || t.result === TaskResult.PartiallySucceeded);
+    const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
     
-    const taskAnalyses: TaskFailureAnalysis[] = [];
-    
-    for (const task of failedTasks) {
+    const taskAnalyses: TaskFailureAnalysis[] = [];    for (const task of failedTasks) {
       const logs = options.includeFullLogs ? await this.getTaskLogs(build, task) : [];
       const errorDetails = this.analyzeTaskError(task, logs);
-      
+
       taskAnalyses.push({
         taskId: task.id || "unknown",
         taskName: task.name || "Unknown Task",
@@ -189,7 +187,7 @@ export class BuildFailureReportGenerator {
         result: this.getTaskResultString(task.result),
         startTime: task.startTime,
         finishTime: task.finishTime,
-        duration: task.finishTime && task.startTime ? 
+        duration: task.finishTime && task.startTime ?
           Math.round((task.finishTime.getTime() - task.startTime.getTime()) / 1000) : undefined,
         errorDetails,
         logs,
@@ -198,14 +196,14 @@ export class BuildFailureReportGenerator {
         outputs: this.extractTaskOutputs(task)
       });
     }
-    
+
     return taskAnalyses;
   }
 
   private async generateDiffAnalysis(build: Build, options: FailureReportOptions): Promise<BuildDiffAnalysis | undefined> {
     try {
       const buildApi = await this.connection.getBuildApi();
-      
+
       // Find last successful build
       const successfulBuilds = await buildApi.getBuilds(
         this.project,
@@ -252,7 +250,7 @@ export class BuildFailureReportGenerator {
     return {
       agent: {
         name: "Unknown",
-        version: "Unknown", 
+        version: "Unknown",
         pool: "Unknown",
         capabilities: {},
         osType: "Unknown",
@@ -274,7 +272,7 @@ export class BuildFailureReportGenerator {
         peakCpuUsage: 0,
         diskUsage: 0,
         networkUsage: 0,
-        duration: build.finishTime && build.startTime ? 
+        duration: build.finishTime && build.startTime ?
           Math.round((build.finishTime.getTime() - build.startTime.getTime()) / 1000) : 0
       }
     };
@@ -282,7 +280,7 @@ export class BuildFailureReportGenerator {
 
   private async generateFailureTimeline(build: Build, options: FailureReportOptions): Promise<FailureTimeline[]> {
     const timeline = await this.getTimelineRecords(build);
-    
+
     return timeline
       .filter(record => record.startTime)
       .sort((a, b) => (a.startTime?.getTime() || 0) - (b.startTime?.getTime() || 0))
@@ -291,9 +289,9 @@ export class BuildFailureReportGenerator {
         event: record.name || "Unknown Event",
         phase: this.mapToPhase(record.type || ""),
         status: this.getTimelineStatus(record),
-        duration: record.finishTime && record.startTime ? 
+        duration: record.finishTime && record.startTime ?
           Math.round((record.finishTime.getTime() - record.startTime.getTime()) / 1000) : undefined,
-        details: record.errorCount && record.errorCount > 0 ? 
+        details: record.errorCount && record.errorCount > 0 ?
           `${record.errorCount} error(s), ${record.warningCount || 0} warning(s)` : undefined,
         logReference: record.log?.url
       }));
@@ -302,23 +300,23 @@ export class BuildFailureReportGenerator {
   private async generateRecommendations(build: Build, options: FailureReportOptions): Promise<IntelligentRecommendation[]> {
     const timeline = await this.getTimelineRecords(build);
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
-    
+
     const recommendations: IntelligentRecommendation[] = [];
-    
+
     for (const task of failedTasks) {
       const taskRecommendations = this.generateTaskRecommendations(task);
       recommendations.push(...taskRecommendations);
     }
-    
+
     // Add general recommendations based on failure patterns
     recommendations.push(...this.generateGeneralRecommendations(build, timeline));
-    
+
     return recommendations.sort((a, b) => this.getPriorityScore(b.priority) - this.getPriorityScore(a.priority));
   }
 
   private async generateRelatedIssues(build: Build, options: FailureReportOptions): Promise<RelatedIssue[]> {
     const buildApi = await this.connection.getBuildApi();
-    
+
     // Get recent failed builds from the same definition
     const recentFailures = await buildApi.getBuilds(
       this.project,
@@ -332,10 +330,10 @@ export class BuildFailureReportGenerator {
     );
 
     const relatedIssues: RelatedIssue[] = [];
-    
+
     for (const failedBuild of recentFailures) {
       if (failedBuild.id === build.id) continue;
-      
+
       const similarity = await this.calculateSimilarity(build, failedBuild);
       if (similarity >= options.confidenceThreshold) {
         relatedIssues.push({
@@ -348,7 +346,7 @@ export class BuildFailureReportGenerator {
         });
       }
     }
-    
+
     return relatedIssues
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, options.maxRelatedIssues);
@@ -356,12 +354,12 @@ export class BuildFailureReportGenerator {
 
   private async generateAttachments(build: Build, options: FailureReportOptions): Promise<ReportAttachment[]> {
     const attachments: ReportAttachment[] = [];
-    
+
     if (options.includeFullLogs) {
       try {
         const buildApi = await this.connection.getBuildApi();
         const logs = await buildApi.getBuildLogs(this.project, build.id!);
-        
+
         for (const log of logs) {
           if (log.type === 'container' && log.url) {
             const logContent = await this.fetchLogContent(log.url);
@@ -379,7 +377,7 @@ export class BuildFailureReportGenerator {
         console.warn("Failed to fetch build logs:", error);
       }
     }
-    
+
     return attachments;
   }
 
@@ -397,7 +395,7 @@ export class BuildFailureReportGenerator {
 
   private analyzeFailureType(timeline: TimelineRecord[]): FailureType {
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
-    
+
     if (failedTasks.length === 0) {
       return FailureType.Unknown;
     }
@@ -406,24 +404,24 @@ export class BuildFailureReportGenerator {
     for (const task of failedTasks) {
       const taskName = (task.name || "").toLowerCase();
       const issues = task.issues || [];
-      
+
       if (taskName.includes("test") || taskName.includes("unit") || taskName.includes("integration")) {
         return FailureType.TestFailure;
       }
-      
+
       if (taskName.includes("build") || taskName.includes("compile")) {
         return FailureType.SourceCodeIssue;
       }
-      
+
       if (issues.some(issue => issue.message?.toLowerCase().includes("timeout"))) {
         return FailureType.TimeoutFailure;
       }
-      
+
       if (issues.some(issue => issue.message?.toLowerCase().includes("network") || issue.message?.toLowerCase().includes("connection"))) {
         return FailureType.NetworkIssue;
       }
     }
-    
+
     return FailureType.TaskFailure;
   }
 
@@ -452,7 +450,7 @@ export class BuildFailureReportGenerator {
     // Simple confidence calculation based on available data
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
     if (failedTasks.length === 0) return 0.5;
-    
+
     const hasDetailedErrors = failedTasks.some(t => t.issues && t.issues.length > 0);
     return hasDetailedErrors ? 0.8 : 0.6;
   }
@@ -460,11 +458,11 @@ export class BuildFailureReportGenerator {
   private generateQuickSummary(build: Build, timeline: TimelineRecord[], failureType: FailureType): string {
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
     const taskCount = failedTasks.length;
-    
+
     if (taskCount === 0) {
       return "Build failed with no specific task failures identified.";
     }
-    
+
     const firstFailedTask = failedTasks[0];
     return `Build failed with ${taskCount} task failure(s). Primary failure in '${firstFailedTask.name}' (${failureType}).`;
   }
@@ -486,11 +484,11 @@ export class BuildFailureReportGenerator {
 
   private identifyContributingFactors(timeline: TimelineRecord[], failedTasks: TimelineRecord[]): string[] {
     const factors: string[] = [];
-    
+
     if (timeline.some(t => t.warningCount && t.warningCount > 0)) {
       factors.push("Build warnings present");
     }
-    
+
     return factors;
   }
 
@@ -499,7 +497,7 @@ export class BuildFailureReportGenerator {
       level: index,
       component: task.name || "Unknown Task",
       errorMessage: task.issues?.[0]?.message || "No error message available",
-      errorCode: task.issues?.[0]?.type,
+      errorCode: task.issues?.[0]?.type?.toString(),
       timestamp: task.startTime || new Date(),
       context: {
         taskType: task.type,
@@ -527,10 +525,10 @@ export class BuildFailureReportGenerator {
   private analyzeTaskError(task: TimelineRecord, logs: TaskLogEntry[]): TaskErrorDetails {
     const issues = task.issues || [];
     const primaryIssue = issues[0];
-    
+
     return {
       errorMessage: primaryIssue?.message || "No error message available",
-      errorCode: primaryIssue?.type,
+      errorCode: primaryIssue?.type?.toString(),
       errorType: TaskErrorType.ExecutionFailure,
       innerErrors: issues.slice(1).map(i => i.message || ""),
       recoveryHints: this.generateRecoveryHints(task)
@@ -540,17 +538,17 @@ export class BuildFailureReportGenerator {
   private generateRecoveryHints(task: TimelineRecord): string[] {
     const hints: string[] = [];
     const taskName = (task.name || "").toLowerCase();
-    
+
     if (taskName.includes("test")) {
       hints.push("Check test logs for specific test failures");
       hints.push("Verify test dependencies are available");
     }
-    
+
     if (taskName.includes("build")) {
       hints.push("Check for compilation errors in the source code");
       hints.push("Verify all dependencies are properly installed");
     }
-    
+
     return hints;
   }
 
@@ -591,13 +589,13 @@ export class BuildFailureReportGenerator {
 
   private mapToPhase(recordType: string): BuildPhase {
     const type = recordType.toLowerCase();
-    
+
     if (type.includes("checkout") || type.includes("source")) return BuildPhase.SourceDownload;
     if (type.includes("build") || type.includes("compile")) return BuildPhase.Build;
     if (type.includes("test")) return BuildPhase.Test;
     if (type.includes("deploy")) return BuildPhase.Deploy;
     if (type.includes("job")) return BuildPhase.Initialization;
-    
+
     return BuildPhase.Build;
   }
 
@@ -611,7 +609,7 @@ export class BuildFailureReportGenerator {
   private generateTaskRecommendations(task: TimelineRecord): IntelligentRecommendation[] {
     const recommendations: IntelligentRecommendation[] = [];
     const taskName = (task.name || "").toLowerCase();
-    
+
     if (taskName.includes("test")) {
       recommendations.push({
         id: `test-failure-${task.id}`,
@@ -626,7 +624,7 @@ export class BuildFailureReportGenerator {
         confidence: 0.8
       });
     }
-    
+
     return recommendations;
   }
 
@@ -675,7 +673,7 @@ export class BuildFailureReportGenerator {
     const diffMs = now.getTime() - date.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffDays > 0) return `${diffDays} day(s) ago`;
     if (diffHours > 0) return `${diffHours} hour(s) ago`;
     return "Less than an hour ago";
