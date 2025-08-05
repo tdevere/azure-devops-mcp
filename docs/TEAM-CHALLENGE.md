@@ -173,7 +173,7 @@ Want to see how we're planning to expand this innovation? We've mapped out a **c
 
 **Next innovations in the pipeline:**
 - 📈 **Performance Trend Analysis** - Detect build regressions automatically
-- 🔍 **Flaky Test Detection** - Identify unreliable tests across pipelines  
+- 🔍 **Flaky Test Detection** - Identify unreliable tests across pipelines
 - 📊 **Support Case Automation** - Generate comprehensive issue reports
 - 💾 **Cache Optimization** - Intelligent caching suggestions
 - 📋 **Usage Analytics** - Track tool adoption and success metrics

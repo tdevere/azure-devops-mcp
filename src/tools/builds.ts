@@ -8,6 +8,8 @@ import { WebApi } from "azure-devops-node-api";
 import { BuildQueryOrder, DefinitionQueryOrder, BuildResult } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
 import { z } from "zod";
 import { StageUpdateType } from "azure-devops-node-api/interfaces/BuildInterfaces.js";
+import { BuildFailureReportGenerator } from "../shared/failure-report-generator.js";
+import { BuildFailureReport } from "../shared/report-types.js";
 
 const BUILD_TOOLS = {
   get_definitions: "build_get_definitions",
@@ -22,6 +24,7 @@ const BUILD_TOOLS = {
   get_failed_builds: "build_get_failed_builds",
   get_failed_builds_detailed: "build_get_failed_builds_detailed",
   get_failed_builds_by_definition: "build_get_failed_builds_by_definition",
+  generate_failure_report: "build_generate_failure_report",
 };
 
 function configureBuildTools(server: McpServer, tokenProvider: () => Promise<AccessToken>, connectionProvider: () => Promise<WebApi>) {
@@ -638,6 +641,265 @@ function configureBuildTools(server: McpServer, tokenProvider: () => Promise<Acc
       };
     }
   );
+
+  server.tool(
+    BUILD_TOOLS.generate_failure_report,
+    "Generates a comprehensive failure analysis report for a specific build, including root cause analysis, task details, recommendations, and diff analysis.",
+    {
+      project: z.string().describe("Project ID or name containing the failed build"),
+      buildId: z.number().describe("ID of the failed build to analyze"),
+      includeFullLogs: z.boolean().optional().default(true).describe("Include full build logs in the report"),
+      includeDiffAnalysis: z.boolean().optional().default(true).describe("Include comparison with last successful build"),
+      includeEnvironmentDetails: z.boolean().optional().default(true).describe("Include agent and environment information"),
+      includeRelatedIssues: z.boolean().optional().default(true).describe("Include analysis of similar recent failures"),
+      maxRelatedIssues: z.number().optional().default(10).describe("Maximum number of related issues to analyze"),
+      analyzeTimeWindow: z.number().optional().default(30).describe("Number of days to look back for failure patterns"),
+      confidenceThreshold: z.number().optional().default(0.7).describe("Minimum confidence threshold for related issue detection (0-1)"),
+      outputFormat: z.enum(["json", "markdown"]).optional().default("json").describe("Output format for the report")
+    },
+    async ({ 
+      project, 
+      buildId, 
+      includeFullLogs, 
+      includeDiffAnalysis, 
+      includeEnvironmentDetails, 
+      includeRelatedIssues, 
+      maxRelatedIssues, 
+      analyzeTimeWindow, 
+      confidenceThreshold,
+      outputFormat 
+    }) => {
+      try {
+        const connection = await connectionProvider();
+        const reportGenerator = new BuildFailureReportGenerator(connection, project);
+        
+        const options = {
+          includeFullLogs: includeFullLogs || true,
+          includeDiffAnalysis: includeDiffAnalysis || true,
+          includeEnvironmentDetails: includeEnvironmentDetails || true,
+          includeRelatedIssues: includeRelatedIssues || true,
+          maxRelatedIssues: maxRelatedIssues || 10,
+          analyzeTimeWindow: analyzeTimeWindow || 30,
+          confidenceThreshold: confidenceThreshold || 0.7
+        };
+
+        const report = await reportGenerator.generateReport(buildId, options);
+
+        if (outputFormat === "markdown") {
+          const markdownReport = convertReportToMarkdown(report);
+          return {
+            content: [{ type: "text", text: markdownReport }],
+          };
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(report, null, 2) }],
+        };
+      } catch (error) {
+        return {
+          content: [{ 
+            type: "text", 
+            text: JSON.stringify({
+              error: "Failed to generate failure report",
+              message: error instanceof Error ? error.message : String(error),
+              buildId,
+              project
+            }, null, 2)
+          }],
+        };
+      }
+    }
+  );
+}
+
+/**
+ * Converts a BuildFailureReport to a comprehensive Markdown format
+ */
+function convertReportToMarkdown(report: BuildFailureReport): string {
+  const md = [];
+  
+  md.push(`# 🚨 Build Failure Analysis Report`);
+  md.push(`**Report ID:** ${report.metadata.reportId}`);
+  md.push(`**Generated:** ${new Date(report.metadata.generatedAt).toLocaleString()}`);
+  md.push(``);
+  
+  // Build Metadata
+  md.push(`## 📋 Build Information`);
+  md.push(`| Property | Value |`);
+  md.push(`|----------|-------|`);
+  md.push(`| **Build ID** | ${report.metadata.buildId} |`);
+  md.push(`| **Build Number** | ${report.metadata.buildNumber} |`);
+  md.push(`| **Definition** | ${report.metadata.definitionName} |`);
+  md.push(`| **Repository** | ${report.metadata.repository} |`);
+  md.push(`| **Branch** | ${report.metadata.branch} |`);
+  md.push(`| **Requested By** | ${report.metadata.requestedBy} |`);
+  md.push(`| **Duration** | ${report.metadata.duration ? `${report.metadata.duration}s` : 'N/A'} |`);
+  md.push(`| **Result** | ${report.metadata.result} |`);
+  md.push(``);
+
+  // Failure Summary
+  md.push(`## 🎯 Failure Summary`);
+  md.push(`**Primary Failure Type:** ${report.summary.primaryFailureType}`);
+  md.push(`**Category:** ${report.summary.failureCategory}`);
+  md.push(`**Confidence Score:** ${Math.round(report.summary.confidenceScore * 100)}%`);
+  md.push(``);
+  md.push(`### Quick Summary`);
+  md.push(report.summary.quickSummary);
+  md.push(``);
+
+  if (report.summary.isRecurrentFailure && report.summary.failureFrequency) {
+    md.push(`### ⚠️ Recurrent Failure Detected`);
+    md.push(`- **Last 24h:** ${report.summary.failureFrequency.occurrencesLast24h} occurrences`);
+    md.push(`- **Last 7 days:** ${report.summary.failureFrequency.occurrencesLast7d} occurrences`);
+    md.push(`- **Last 30 days:** ${report.summary.failureFrequency.occurrencesLast30d} occurrences`);
+    md.push(``);
+  }
+
+  // Impact Assessment
+  md.push(`### 📊 Impact Assessment`);
+  md.push(`- **Customer Impact:** ${report.summary.impactAssessment.customerImpact}`);
+  md.push(`- **Blocking Deployment:** ${report.summary.impactAssessment.blockingDeployment ? 'Yes' : 'No'}`);
+  md.push(`- **Estimated Resolution Time:** ${report.summary.impactAssessment.estimatedResolutionTime}`);
+  md.push(`- **Affected Branches:** ${report.summary.impactAssessment.affectedBranches.join(', ')}`);
+  md.push(``);
+
+  // Root Cause Analysis
+  md.push(`## 🔍 Root Cause Analysis`);
+  md.push(`**Primary Cause:** ${report.rootCauseAnalysis.primaryCause}`);
+  md.push(``);
+  
+  if (report.rootCauseAnalysis.contributingFactors.length > 0) {
+    md.push(`### Contributing Factors`);
+    report.rootCauseAnalysis.contributingFactors.forEach((factor: string) => {
+      md.push(`- ${factor}`);
+    });
+    md.push(``);
+  }
+
+  if (report.rootCauseAnalysis.failureStack.length > 0) {
+    md.push(`### Failure Stack Trace`);
+    report.rootCauseAnalysis.failureStack.forEach((entry: any, index: number) => {
+      md.push(`**${index + 1}. ${entry.component}**`);
+      md.push(`- **Error:** ${entry.errorMessage}`);
+      if (entry.errorCode) md.push(`- **Code:** ${entry.errorCode}`);
+      md.push(`- **Time:** ${new Date(entry.timestamp).toLocaleString()}`);
+      md.push(``);
+    });
+  }
+
+  // Task Analysis
+  if (report.taskAnalysis.length > 0) {
+    md.push(`## ⚙️ Failed Task Analysis`);
+    report.taskAnalysis.forEach((task: any, index: number) => {
+      md.push(`### ${index + 1}. ${task.displayName}`);
+      md.push(`- **Task Type:** ${task.taskType}`);
+      md.push(`- **State:** ${task.state}`);
+      md.push(`- **Result:** ${task.result}`);
+      md.push(`- **Duration:** ${task.duration ? `${task.duration}s` : 'N/A'}`);
+      md.push(``);
+      
+      md.push(`#### Error Details`);
+      md.push(`- **Message:** ${task.errorDetails.errorMessage}`);
+      if (task.errorDetails.errorCode) md.push(`- **Code:** ${task.errorDetails.errorCode}`);
+      if (task.errorDetails.exitCode) md.push(`- **Exit Code:** ${task.errorDetails.exitCode}`);
+      md.push(`- **Type:** ${task.errorDetails.errorType}`);
+      
+      if (task.errorDetails.recoveryHints.length > 0) {
+        md.push(`#### Recovery Hints`);
+        task.errorDetails.recoveryHints.forEach((hint: string) => {
+          md.push(`- ${hint}`);
+        });
+      }
+      md.push(``);
+    });
+  }
+
+  // Diff Analysis
+  if (report.diffAnalysis) {
+    md.push(`## 📈 Comparison with Last Successful Build`);
+    md.push(`**Last Successful Build:** #${report.diffAnalysis.lastSuccessfulBuild.buildNumber} (${new Date(report.diffAnalysis.lastSuccessfulBuild.finishTime).toLocaleString()})`);
+    md.push(``);
+    
+    md.push(`### Risk Assessment`);
+    md.push(`**Overall Risk:** ${report.diffAnalysis.riskAssessment.overallRisk}`);
+    
+    if (report.diffAnalysis.riskAssessment.riskFactors.length > 0) {
+      md.push(`#### Risk Factors`);
+      report.diffAnalysis.riskAssessment.riskFactors.forEach((factor: string) => {
+        md.push(`- ${factor}`);
+      });
+    }
+    
+    if (report.diffAnalysis.riskAssessment.recommendedActions.length > 0) {
+      md.push(`#### Recommended Actions`);
+      report.diffAnalysis.riskAssessment.recommendedActions.forEach((action: string) => {
+        md.push(`- ${action}`);
+      });
+    }
+    md.push(``);
+  }
+
+  // Timeline
+  if (report.timeline.length > 0) {
+    md.push(`## ⏱️ Failure Timeline`);
+    md.push(`| Time | Event | Phase | Status | Duration |`);
+    md.push(`|------|-------|-------|--------|----------|`);
+    report.timeline.forEach((event: any) => {
+      const time = new Date(event.timestamp).toLocaleTimeString();
+      const duration = event.duration ? `${event.duration}s` : 'N/A';
+      md.push(`| ${time} | ${event.event} | ${event.phase} | ${event.status} | ${duration} |`);
+    });
+    md.push(``);
+  }
+
+  // Recommendations
+  if (report.recommendations.length > 0) {
+    md.push(`## 💡 Intelligent Recommendations`);
+    
+    const priorityOrder = ['critical', 'high', 'medium', 'low'];
+    priorityOrder.forEach(priority => {
+      const priorityRecommendations = report.recommendations.filter((r: any) => r.priority === priority);
+      if (priorityRecommendations.length > 0) {
+        md.push(`### ${priority.toUpperCase()} Priority`);
+        priorityRecommendations.forEach((rec: any, index: number) => {
+          md.push(`#### ${index + 1}. ${rec.title}`);
+          md.push(`**Category:** ${rec.category}`);
+          md.push(`**Description:** ${rec.description}`);
+          md.push(`**Action:** ${rec.action}`);
+          md.push(`**Estimated Time:** ${rec.estimatedTime}`);
+          md.push(`**Automation Available:** ${rec.automationAvailable ? 'Yes' : 'No'}`);
+          md.push(`**Confidence:** ${Math.round(rec.confidence * 100)}%`);
+          md.push(``);
+        });
+      }
+    });
+  }
+
+  // Related Issues
+  if (report.relatedIssues.length > 0) {
+    md.push(`## 🔗 Related Issues`);
+    md.push(`| Build | Similarity | Reason | Time Since |`);
+    md.push(`|-------|------------|--------|------------|`);
+    report.relatedIssues.forEach((issue: any) => {
+      const similarity = Math.round(issue.similarity * 100);
+      md.push(`| #${issue.buildNumber} | ${similarity}% | ${issue.similarityReason} | ${issue.timeSinceOccurrence} |`);
+    });
+    md.push(``);
+  }
+
+  // Attachments
+  if (report.attachments.length > 0) {
+    md.push(`## 📎 Attachments`);
+    report.attachments.forEach((attachment: any) => {
+      md.push(`- **${attachment.name}** (${attachment.type}): ${attachment.description}`);
+    });
+    md.push(``);
+  }
+
+  md.push(`---`);
+  md.push(`*Report generated by Azure DevOps MCP Build Failure Analysis Tool*`);
+  
+  return md.join('\n');
 }
 
 export { BUILD_TOOLS, configureBuildTools };

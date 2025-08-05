@@ -8,7 +8,7 @@ Enable our Azure DevOps support team to use MCP tools that can:
 - Report on build durations and pass/fail trends
 - Detect flaky tests
 - Provide caching and performance suggestions
-- Export data to dashboards or AI assistants
+
 
 We aim to create a **systematic automation workflow** that adds these tools incrementally and cleanly.
 
