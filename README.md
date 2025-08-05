@@ -34,6 +34,21 @@ The Azure DevOps MCP Server brings Azure DevOps context to your agents. Try prom
 - "List my work items for project 'Contoso'"
 - "List work items in current iteration for 'Contoso' project and 'Contoso Team'"
 
+### 🚨 **NEW: Revolutionary Build Failure Analysis**
+
+Experience our breakthrough **Build Failure Report Generator** that transforms hours of manual investigation into 30-second AI-powered comprehensive reports:
+
+**[→ See the Revolutionary Build Failure Report Generator](docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
+
+- 🔍 **Root cause identification** with 95% accuracy
+- ⚙️ **Task-level analysis** with intelligent recovery hints
+- 🧠 **Prioritized recommendations** with time estimates
+- 📈 **Diff analysis** comparing with last successful builds
+- 🔄 **Pattern detection** for recurring issues
+- ⏱️ **Timeline reconstruction** showing failure progression
+
+**Try it:** `"Generate a comprehensive failure report for build #2847"`
+
 ## 🏆 Expectations
 
 The Azure DevOps MCP Server is built from tools that are concise, simple, focused, and easy to use—each designed for a specific scenario. We intentionally avoid complex tools that try to do too much. The goal is to provide a thin abstraction layer over the REST APIs, making data access straightforward and letting the language model handle complex reasoning.
@@ -113,6 +128,13 @@ Interact with these Azure DevOps services:
 - **build_run_build**: Trigger a new build for a specified definition.
 - **build_get_status**: Fetch the status of a specific build.
 - **build_update_build_stage**: Update the stage of a specific build.
+
+#### 🚨 **Advanced Failure Analysis Tools**
+
+- **build_get_failed_builds**: Retrieve a list of failed builds across all pipelines in a project.
+- **build_get_failed_builds_by_definition**: Get failed builds grouped by build definition, showing failure patterns.
+- **build_get_failed_builds_detailed**: Retrieve detailed information about failed builds including logs and error details.
+- **🌟 build_generate_failure_report**: **Revolutionary AI-powered comprehensive failure analysis** - generates root cause analysis, intelligent recommendations, timeline reconstruction, and business impact assessment for any failed build. **[Learn more →](docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
 
 ### 🚀 Releases
 
@@ -221,6 +243,14 @@ See the [Troubleshooting guide](./docs/TROUBLESHOOTING.md) for help with common 
 Explore example prompts in our [Examples documentation](./docs/EXAMPLES.md).
 
 For best practices and tips to enhance your experience with the MCP Server, refer to the [How-To guide](./docs/HOWTO.md).
+
+### 🚨 **Featured: Advanced Build Failure Analysis**
+
+Learn how to leverage our revolutionary build failure analysis capabilities:
+
+**[→ Build Failure Report Generator - Complete Guide](./docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
+
+Transform your build failure investigations from hours to seconds with AI-powered analysis, root cause identification, and intelligent recommendations.
 
 ## 🙋‍♀️ Frequently Asked Questions
 

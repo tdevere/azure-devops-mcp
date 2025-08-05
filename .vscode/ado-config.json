@@ -1,0 +1,40 @@
+{
+  "organization": "your-org-name",
+  "defaultProject": "your-default-project",
+  "preferences": {
+    "maxResults": 100,
+    "includeDetails": true,
+    "defaultStateFilter": "wellFormed",
+    "autoRefresh": true
+  },
+  "prompts": {
+    "listProjects": "get list of ado projects",
+    "listTeams": "get list of teams for project {{defaultProject}}",
+    "failedBuilds": "show me failed builds in {{defaultProject}}",
+    "generateReport": "generate failure report for build {{buildId}} in {{defaultProject}}"
+  },
+  "aliases": {
+    "projects": "core_list_projects",
+    "teams": "core_list_project_teams",
+    "builds": "build_get_builds",
+    "failed-builds": "build_get_failed_builds",
+    "failure-report": "build_generate_failure_report"
+  },
+  "quickCommands": [
+    {
+      "name": "List Projects",
+      "description": "Get all Azure DevOps projects",
+      "command": "get list of ado projects"
+    },
+    {
+      "name": "Failed Builds",
+      "description": "Show recent failed builds",
+      "command": "show me the last 10 failed builds in project \"{{defaultProject}}\""
+    },
+    {
+      "name": "Build Analysis",
+      "description": "Generate failure report for a specific build",
+      "command": "generate comprehensive failure report for build #{{input:buildId}} in project \"{{defaultProject}}\""
+    }
+  ]
+}
