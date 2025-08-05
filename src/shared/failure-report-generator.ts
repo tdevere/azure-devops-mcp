@@ -172,7 +172,7 @@ export class BuildFailureReportGenerator {
   private async generateTaskAnalysis(build: Build, options: FailureReportOptions): Promise<TaskFailureAnalysis[]> {
     const timeline = await this.getTimelineRecords(build);
     const failedTasks = timeline.filter(t => t.result === TaskResult.Failed);
-    
+
     const taskAnalyses: TaskFailureAnalysis[] = [];    for (const task of failedTasks) {
       const logs = options.includeFullLogs ? await this.getTaskLogs(build, task) : [];
       const errorDetails = this.analyzeTaskError(task, logs);
