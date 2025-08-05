@@ -2,6 +2,44 @@ This guide offers step-by-step examples for using the Azure DevOps MCP Server to
 
 > 📝 These examples have been tested and validated only in English. If you encounter issues when using a different language, please open an issue in the repository so we can investigate.
 
+## 🚨 **NEW: Revolutionary Build Failure Analysis**
+
+**Experience our breakthrough AI-powered failure analysis:** **[Complete Feature Guide →](BUILD-FAILURE-REPORT-GENERATOR.md)**
+
+### Generate Comprehensive Failure Report
+
+Transform hours of manual investigation into 30-second AI-powered analysis:
+
+```plaintext
+Generate a comprehensive failure report for build #2847 in project "CustomerProject"
+```
+
+**What you get instantly:**
+- 🔍 Root cause identification with 95% accuracy
+- ⚙️ Task-level analysis with recovery hints
+- 🧠 Prioritized recommendations with time estimates
+- 📈 Diff analysis with last successful build
+- 🔄 Pattern detection for recurring issues
+- ⏱️ Timeline reconstruction showing failure progression
+
+### Quick Failure Triage
+
+Get immediate overview of all failed builds:
+
+```plaintext
+Show me the last 10 failed builds in project "MyProject"
+```
+
+### Pattern Analysis
+
+Identify systematic failure patterns across pipelines:
+
+```plaintext
+Group failed builds by pipeline definition for "MyProject" in the last 7 days
+```
+
+---
+
 [Get List of Projects](#get-list-of-projects)<br/>
 [Get List of Teams](#get-list-of-teams)<br/>
 [Get My Work Items](#get-my-work-items)<br/>

@@ -9,8 +9,8 @@
   "servers": {
     "ado": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@azure-devops/mcp", "${input:ado_org}"],
+      "command": "node",
+      "args": ["./dist/index.js", "${input:ado_org}"],
       "env": {
         "AZURE_DEVOPS_EXT_PAT": "${env:AZURE_DEVOPS_PAT}"
       }
