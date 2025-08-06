@@ -2,7 +2,7 @@ This guide offers step-by-step examples for using the Azure DevOps MCP Server to
 
 > 📝 These examples have been tested and validated only in English. If you encounter issues when using a different language, please open an issue in the repository so we can investigate.
 
-## 🚨 **NEW: Revolutionary Build Failure Analysis**
+## 🚨 **NEW: Revolutionary Build Failure Analysis & ICM Reports**
 
 **Experience our breakthrough AI-powered failure analysis:** **[Complete Feature Guide →](BUILD-FAILURE-REPORT-GENERATOR.md)**
 
@@ -21,6 +21,42 @@ Generate a comprehensive failure report for build #2847 in project "CustomerProj
 - 📈 Diff analysis with last successful build
 - 🔄 Pattern detection for recurring issues
 - ⏱️ Timeline reconstruction showing failure progression
+
+## 🆕 **BRAND NEW: Automated ICM Report Generation**
+
+**Transform any build failure into a professional incident management report:** **[Complete ICM Guide →](ICM-REPORT-GENERATION.md)**
+
+### Generate ICM Report for Latest Failure
+
+Create enterprise-grade incident reports instantly:
+
+```plaintext
+Please create an ICM report for Project_001 last build failure
+```
+
+### Generate ICM Report for Specific Build
+
+Target specific builds for detailed incident analysis:
+
+```plaintext
+Generate an ICM report for build 1380 in project MyProject
+```
+
+### ICM Report with Pattern Analysis
+
+Get comprehensive incident reports with recurring pattern detection:
+
+```plaintext
+Create ICM report for latest failure in pipeline DatabaseMigration with pattern analysis
+```
+
+**What you get instantly:**
+- 🎯 **Automated severity assessment** (Sev1-Sev4) and team assignment
+- 📋 **Complete incident documentation** with business impact analysis
+- ⚡ **Immediate & long-term action plans** with realistic time estimates
+- 🔗 **Related incident correlation** and pattern tracking
+- 📊 **Risk mitigation strategies** and prevention measures
+- 🤖 **Automation recommendations** for faster resolution
 
 ### Quick Failure Triage
 

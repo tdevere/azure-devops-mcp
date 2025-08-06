@@ -1,0 +1,331 @@
+{
+  "icmReport": {
+    "incidentId": "ICM-2025080602-1380",
+    "title": "Azure DevOps Pipeline Critical Failure - DNSTESTER Build 20250801.7 - PowerShell Core Missing",
+    "severity": "Sev2",
+    "status": "Active",
+    "assignedTeam": "Azure DevOps Test Plans",
+    "createdBy": "Azure DevOps MCP System",
+    "createdDate": "2025-08-06T16:27:06.802Z",
+    "lastUpdated": "2025-08-06T16:27:06.802Z",
+    "customerImpact": "High - Major functionality impaired",
+    "description": "Critical recurring failure in DNSTESTER pipeline (Build 1380) due to PowerShell Core configuration issues. This is a persistent pattern with 6 occurrences in the last 7 days, completely blocking Key Vault access testing on the network branch. Confidence score: 0.8",
+
+    "technicalDetails": {
+      "organizationName": "AzDevOpsSampleOrg",
+      "projectName": "Project_001",
+      "pipelineName": "DNSTESTER (29)",
+      "buildNumber": "20250801.7",
+      "buildId": 1380,
+      "branch": "refs/heads/network",
+      "repository": "DNSTESTER",
+      "requestedBy": "Anthony DeVere",
+      "failureType": "Configuration error",
+      "failureStage": "Test execution",
+      "primaryCause": "PowerShell Core executable 'pwsh' not found on Azure Pipelines hosted agent",
+      "errorClassification": {
+        "category": "Build Failure",
+        "severity": "high",
+        "actionRequired": "investigation",
+        "automatedResolution": false
+      },
+      "duration": "28 seconds",
+      "queueTime": "2025-08-01T21:15:23.036Z",
+      "startTime": "2025-08-01T21:16:58.864Z",
+      "finishTime": "2025-08-01T21:17:26.826Z"
+    },
+
+    "failureAnalysis": {
+      "primaryFailures": [
+        {
+          "taskName": "Test Summary",
+          "displayName": "PowerShell",
+          "errorMessage": "Unable to locate executable file: 'pwsh'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.",
+          "errorCode": "1",
+          "timestamp": "2025-08-01T21:17:20.840Z",
+          "duration": 2,
+          "taskType": "Task"
+        },
+        {
+          "taskName": "Publish Test Logs",
+          "displayName": "PublishBuildArtifacts",
+          "errorMessage": "Publishing build artifacts failed with an error: Not found PathtoPublish: /mnt/vss/_work/_temp/keyvault-test-results.txt",
+          "errorCode": "1",
+          "timestamp": "2025-08-01T21:17:19.126Z",
+          "duration": 2,
+          "taskType": "Task"
+        }
+      ],
+      "rootCause": "PowerShell Core (pwsh) executable is not installed or not available in PATH on the Azure Pipelines hosted agent. This causes cascade failures in test execution and artifact publishing.",
+      "contributingFactors": [
+        "Pipeline configuration assumes PowerShell Core is available",
+        "Test result artifacts path is dependent on successful PowerShell execution",
+        "Azure Pipelines hosted agent lacks PowerShell Core installation",
+        "No fallback mechanism to regular PowerShell",
+        "Missing PowerShell Core installation step in pipeline"
+      ],
+      "failureStack": [
+        "Stage '__default' failed",
+        "Task 'Test Summary' (PowerShell) failed - pwsh not found",
+        "Task 'Publish Test Logs' failed - missing test results file",
+        "Phase 'Test MDP Key Vault Access with RBAC' failed",
+        "Job 'Test MDP Key Vault Access with RBAC' failed"
+      ]
+    },
+
+    "impactAssessment": {
+      "affectedUsers": 50,
+      "impactLevel": "High - Major functionality impaired",
+      "blockingDeployment": true,
+      "customerImpact": "high",
+      "businessImpact": "Complete blockage of Key Vault access testing for network branch. Development team unable to validate security configurations.",
+      "recurringPattern": {
+        "isRecurrent": true,
+        "occurrencesLast24h": 0,
+        "occurrencesLast7d": 6,
+        "occurrencesLast30d": 6,
+        "firstOccurrence": "2025-08-01T20:48:38.899Z",
+        "patternDetected": true,
+        "failureCategory": "persistent"
+      },
+      "affectedComponents": [
+        "Key Vault access testing",
+        "RBAC configuration validation",
+        "Test result publishing",
+        "Security compliance checks"
+      ]
+    },
+
+    "troubleshootingSteps": [
+      {
+        "step": "Analyzed build failure using Azure DevOps MCP tools",
+        "result": "Identified test_failure with confidence score 0.8, persistent pattern detected",
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "performedBy": "Azure DevOps MCP System",
+        "status": "completed"
+      },
+      {
+        "step": "Root cause analysis completed",
+        "result": "Primary cause: PowerShell Core executable 'pwsh' not available on agent",
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "performedBy": "Azure DevOps MCP System",
+        "status": "completed"
+      },
+      {
+        "step": "Failure frequency pattern analysis",
+        "result": "Found 6 occurrences in last 7 days, confirming persistent issue",
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "performedBy": "Azure DevOps MCP System",
+        "status": "completed"
+      },
+      {
+        "step": "Timeline analysis of task failures",
+        "result": "Multiple task cascade failures starting with PowerShell task at 21:17:20.840Z",
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "performedBy": "Azure DevOps MCP System",
+        "status": "completed"
+      },
+      {
+        "step": "Related incidents correlation",
+        "result": "Found 5 similar failures (builds 1379, 1378, 1377, 1375, 1373) with 0.8 similarity",
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "performedBy": "Azure DevOps MCP System",
+        "status": "completed"
+      }
+    ],
+
+    "resolutionPlan": {
+      "immediateActions": [
+        {
+          "action": "Add PowerShell Core installation task to pipeline",
+          "priority": "Critical",
+          "estimatedTime": "15 minutes",
+          "assignee": "Pipeline Developer",
+          "description": "Add installation task before any PowerShell Core usage",
+          "yamlExample": "- task: PowerShell@2\n  displayName: 'Install PowerShell Core'\n  inputs:\n    targetType: 'inline'\n    script: |\n      if (!(Get-Command pwsh -ErrorAction SilentlyContinue)) {\n        Write-Host \"Installing PowerShell Core...\"\n        Invoke-WebRequest -Uri https://aka.ms/install-powershell.ps1 | Invoke-Expression\n      }"
+        },
+        {
+          "action": "Update pipeline to use Windows PowerShell as fallback",
+          "priority": "High",
+          "estimatedTime": "10 minutes",
+          "assignee": "Pipeline Developer",
+          "description": "Change 'pwsh' references to 'powershell' for compatibility"
+        },
+        {
+          "action": "Verify Azure Pipelines agent capabilities",
+          "priority": "High",
+          "estimatedTime": "15 minutes",
+          "assignee": "DevOps Engineer",
+          "description": "Document PowerShell availability on different agent types"
+        },
+        {
+          "action": "Test pipeline fix on development branch",
+          "priority": "High",
+          "estimatedTime": "20 minutes",
+          "assignee": "Pipeline Developer",
+          "description": "Validate fix before applying to main pipeline"
+        }
+      ],
+      "longTermActions": [
+        {
+          "action": "Create standardized PowerShell pipeline template",
+          "priority": "Medium",
+          "estimatedTime": "2 hours",
+          "assignee": "DevOps Team",
+          "description": "Develop reusable template with proper PowerShell handling"
+        },
+        {
+          "action": "Implement pipeline validation rules",
+          "priority": "Medium",
+          "estimatedTime": "4 hours",
+          "assignee": "DevOps Team",
+          "description": "Add automated checks for PowerShell configuration issues"
+        },
+        {
+          "action": "Setup monitoring for PowerShell-related failures",
+          "priority": "Low",
+          "estimatedTime": "3 hours",
+          "assignee": "DevOps Team",
+          "description": "Create alerts and dashboards for early detection"
+        }
+      ],
+      "estimatedResolutionTime": "30-45 minutes for immediate fix, 2-4 hours for comprehensive solution"
+    },
+
+    "relatedIncidents": [
+      {
+        "buildId": 1379,
+        "buildNumber": "20250801.6",
+        "finishTime": "2025-08-01T21:05:29.746Z",
+        "similarity": 0.8,
+        "similarityReason": "Similar PowerShell Core configuration failure",
+        "timeSinceOccurrence": "4 day(s) ago",
+        "status": "unresolved"
+      },
+      {
+        "buildId": 1378,
+        "buildNumber": "20250801.5",
+        "finishTime": "2025-08-01T21:02:45.815Z",
+        "similarity": 0.8,
+        "similarityReason": "Similar PowerShell Core configuration failure",
+        "timeSinceOccurrence": "4 day(s) ago",
+        "status": "unresolved"
+      },
+      {
+        "buildId": 1377,
+        "buildNumber": "20250801.4",
+        "finishTime": "2025-08-01T21:00:11.889Z",
+        "similarity": 0.8,
+        "similarityReason": "Similar PowerShell Core configuration failure",
+        "timeSinceOccurrence": "4 day(s) ago",
+        "status": "unresolved"
+      },
+      {
+        "buildId": 1375,
+        "buildNumber": "20250801.3",
+        "finishTime": "2025-08-01T20:50:34.724Z",
+        "similarity": 0.8,
+        "similarityReason": "Similar PowerShell Core configuration failure",
+        "timeSinceOccurrence": "4 day(s) ago",
+        "status": "unresolved"
+      },
+      {
+        "buildId": 1373,
+        "buildNumber": "20250801.2",
+        "finishTime": "2025-08-01T20:48:38.899Z",
+        "similarity": 0.8,
+        "similarityReason": "Similar PowerShell Core configuration failure",
+        "timeSinceOccurrence": "4 day(s) ago",
+        "status": "unresolved"
+      }
+    ],
+
+    "automation": {
+      "canAutoResolve": false,
+      "automationRecommendations": [
+        "Create pipeline template with PowerShell Core installation",
+        "Implement validation rules to detect PowerShell configuration issues",
+        "Setup automated retry with PowerShell fallback on pwsh failure",
+        "Add pipeline health checks for PowerShell dependencies"
+      ],
+      "monitoringSetup": {
+        "alerting": "Enable alerts for PowerShell-related build failures across all projects",
+        "dashboards": "Add PowerShell failure tracking to pipeline health dashboard",
+        "thresholds": "Alert when > 2 PowerShell failures in 24 hours",
+        "proactiveChecks": "Daily validation of agent PowerShell capabilities"
+      },
+      "preventionMeasures": [
+        "Pipeline template with PowerShell Core installation",
+        "Agent capability documentation and validation",
+        "PowerShell usage guidelines and best practices",
+        "Automated pipeline configuration validation"
+      ]
+    },
+
+    "effectiveness": {
+      "mitigationApplied": false,
+      "resolutionConfidence": "High",
+      "preventionMeasures": [
+        "Standardized pipeline templates with PowerShell Core installation",
+        "Agent capability documentation and validation",
+        "PowerShell usage guidelines and best practices",
+        "Automated configuration validation"
+      ],
+      "successMetrics": [
+        "Zero PowerShell Core configuration failures",
+        "Reduced pipeline failure rate by >90%",
+        "Improved build reliability for Key Vault testing",
+        "Faster development cycle for security feature validation"
+      ],
+      "riskMitigation": {
+        "businessContinuity": "Implement immediate PowerShell fallback mechanism",
+        "knowledgeTransfer": "Document PowerShell configuration requirements",
+        "scalability": "Apply fix to all similar pipelines proactively"
+      }
+    },
+
+    "timeline": [
+      {
+        "timestamp": "2025-08-01T20:48:38.899Z",
+        "event": "First occurrence of PowerShell Core failure pattern",
+        "source": "Build 1373"
+      },
+      {
+        "timestamp": "2025-08-01T21:15:23.036Z",
+        "event": "Build 1380 queued",
+        "source": "Azure DevOps"
+      },
+      {
+        "timestamp": "2025-08-01T21:16:58.864Z",
+        "event": "Build 1380 started",
+        "source": "Azure DevOps"
+      },
+      {
+        "timestamp": "2025-08-01T21:17:20.840Z",
+        "event": "PowerShell task failed - pwsh not found",
+        "source": "Build 1380"
+      },
+      {
+        "timestamp": "2025-08-01T21:17:26.826Z",
+        "event": "Build 1380 completed with failure",
+        "source": "Azure DevOps"
+      },
+      {
+        "timestamp": "2025-08-06T16:27:06.802Z",
+        "event": "ICM report generated",
+        "source": "Azure DevOps MCP System"
+      }
+    ]
+  },
+
+  "metadata": {
+    "reportVersion": "2.0.0",
+    "generatedBy": "Azure DevOps MCP ICM Report Generator",
+    "generatedAt": "2025-08-06T16:27:06.802Z",
+    "sourceData": "Azure DevOps MCP Build Failure Analysis",
+    "reportId": "failure-report-1380-1754497625784",
+    "templateVersion": "2.0.0",
+    "confidence": 0.8,
+    "analysisDepth": "comprehensive"
+  }
+}

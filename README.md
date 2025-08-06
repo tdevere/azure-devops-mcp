@@ -34,11 +34,11 @@ The Azure DevOps MCP Server brings Azure DevOps context to your agents. Try prom
 - "List my work items for project 'Contoso'"
 - "List work items in current iteration for 'Contoso' project and 'Contoso Team'"
 
-### 🚨 **NEW: Revolutionary Build Failure Analysis**
+### 🚨 **NEW: Revolutionary Build Failure Analysis & ICM Report Generation**
 
-Experience our breakthrough **Build Failure Report Generator** that transforms hours of manual investigation into 30-second AI-powered comprehensive reports:
+Experience our breakthrough **Build Failure Analysis & ICM Report Generator** that transforms hours of manual investigation into 30-second AI-powered comprehensive reports with full incident management:
 
-**[→ See the Revolutionary Build Failure Report Generator](docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
+**[→ See the Revolutionary Build Failure Analysis](docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
 
 - 🔍 **Root cause identification** with 95% accuracy
 - ⚙️ **Task-level analysis** with intelligent recovery hints
@@ -47,7 +47,20 @@ Experience our breakthrough **Build Failure Report Generator** that transforms h
 - 🔄 **Pattern detection** for recurring issues
 - ⏱️ **Timeline reconstruction** showing failure progression
 
-**Try it:** `"Generate a comprehensive failure report for build #2847"`
+### 🆕 **BRAND NEW: Automated ICM Report Generation**
+
+Generate enterprise-grade **Incident Management (ICM) reports** instantly from any build failure:
+
+- 🎯 **Automated severity assessment** and team assignment
+- 📋 **Complete incident documentation** with business impact analysis
+- ⚡ **Immediate & long-term action plans** with time estimates
+- 🔗 **Related incident correlation** and pattern tracking
+- 📊 **Risk mitigation strategies** and prevention measures
+- 🤖 **Automation recommendations** for faster resolution
+
+**Try it:** 
+- `"Please create an ICM report for Project_001 last build failure"`
+- `"Generate an ICM report for build 1380 in project MyProject"`
 
 ## 🏆 Expectations
 
@@ -129,12 +142,39 @@ Interact with these Azure DevOps services:
 - **build_get_status**: Fetch the status of a specific build.
 - **build_update_build_stage**: Update the stage of a specific build.
 
-#### 🚨 **Advanced Failure Analysis Tools**
+#### 🚨 **Advanced Failure Analysis & ICM Tools**
 
 - **build_get_failed_builds**: Retrieve a list of failed builds across all pipelines in a project.
 - **build_get_failed_builds_by_definition**: Get failed builds grouped by build definition, showing failure patterns.
 - **build_get_failed_builds_detailed**: Retrieve detailed information about failed builds including logs and error details.
 - **🌟 build_generate_failure_report**: **Revolutionary AI-powered comprehensive failure analysis** - generates root cause analysis, intelligent recommendations, timeline reconstruction, and business impact assessment for any failed build. **[Learn more →](docs/BUILD-FAILURE-REPORT-GENERATOR.md)**
+
+#### 🆕 **NEW: Automated ICM Report Generation**
+
+**Transform any build failure into a professional incident management report with a single prompt:**
+
+- **🎯 Instant ICM Reports**: Generate enterprise-grade incident reports from build failures
+- **📋 Complete Documentation**: Automated severity assessment, team assignment, and business impact analysis  
+- **⚡ Action Plans**: Immediate and long-term resolution steps with time estimates
+- **🔗 Pattern Recognition**: Correlate related incidents and detect recurring issues
+- **🤖 Smart Automation**: Intelligent recommendations for prevention and monitoring
+
+**Example Commands:**
+```
+"Please create an ICM report for Project_001 last build failure"
+"Generate an ICM report for build 1380 in project MyProject"
+"Create ICM report for latest failure in pipeline DatabaseMigration"
+```
+
+**Features:**
+- ✅ Automated severity assessment (Sev1-Sev4)
+- ✅ Smart team assignment based on failure type
+- ✅ Complete timeline reconstruction
+- ✅ Business impact analysis with risk assessment
+- ✅ Immediate and long-term action plans
+- ✅ Related incident correlation
+- ✅ Automation and monitoring recommendations
+- ✅ JSON reports saved for tracking and escalation
 
 ### 🚀 Releases
 

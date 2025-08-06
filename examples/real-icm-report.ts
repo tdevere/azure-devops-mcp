@@ -58,7 +58,7 @@ function convertMCPFailureReportToPipelineData(failureReport: FailureReport): Pi
   const summary = failureReport.summary;
   const rootCause = failureReport.rootCauseAnalysis;
   const taskAnalysis = failureReport.taskAnalysis;
-  
+
   // Determine failure stage from the primary failure
   let failureStage = 'Build/Compilation';
   if (summary.primaryFailureType === 'test_failure') {
@@ -68,19 +68,19 @@ function convertMCPFailureReportToPipelineData(failureReport: FailureReport): Pi
   } else if (rootCause.primaryCause.includes('checkout')) {
     failureStage = 'Source checkout';
   }
-  
+
   // Determine failure type from error messages
   let failureType = 'Code/compilation error';
   const errorMessages = taskAnalysis
     .filter((task: FailureReportTask) => task.errorDetails.errorMessage)
     .map((task: FailureReportTask) => task.errorDetails.errorMessage);
-  
+
   if (errorMessages.some((msg: string) => msg.includes('pwsh') || msg.includes('PowerShell'))) {
     failureType = 'Configuration error';
   } else if (summary.primaryFailureType === 'test_failure') {
     failureType = 'Test failure';
   }
-  
+
   // Determine impact level based on recurrence and blocking status
   let impactLevel = 'Medium - Some functionality affected';
   if (summary.isRecurrentFailure && summary.impactAssessment.blockingDeployment) {
@@ -89,7 +89,7 @@ function convertMCPFailureReportToPipelineData(failureReport: FailureReport): Pi
   if (summary.failureFrequency.occurrencesLast7d >= 5) {
     impactLevel = 'High - Major functionality impaired';
   }
-  
+
   // Create troubleshooting steps from timeline and recommendations
   const troubleshootingSteps = [
     {
@@ -111,7 +111,7 @@ function convertMCPFailureReportToPipelineData(failureReport: FailureReport): Pi
       performedBy: 'Azure DevOps MCP System'
     }
   ];
-  
+
   // Add specific task failure troubleshooting
   taskAnalysis.forEach((task: FailureReportTask) => {
     if (task.result === '2' && task.errorDetails.errorMessage) {
@@ -123,7 +123,7 @@ function convertMCPFailureReportToPipelineData(failureReport: FailureReport): Pi
       });
     }
   });
-  
+
   return {
     organizationName: 'AzDevOpsSampleOrg',
     failureType: failureType,
@@ -145,8 +145,8 @@ async function generateRealICMReport(): Promise<void> {
   // This would normally come from the MCP tool call
   const realFailureReport = {
     "metadata": {
-      "reportId": "failure-report-1380-1754496856850",
-      "generatedAt": "2025-08-06T16:14:18.002Z",
+      "reportId": "failure-report-1380-1754497352933",
+      "generatedAt": "2025-08-06T16:22:33.896Z",
       "project": "Project_001",
       "buildId": 1380,
       "buildNumber": "20250801.7",
@@ -214,10 +214,10 @@ async function generateRealICMReport(): Promise<void> {
 
     // Convert to PipelineFailureData format
     const pipelineFailureData = convertMCPFailureReportToPipelineData(realFailureReport);
-    
+
     console.log('📝 Generating ICM report...');
     const icmReport = createICMReportFromFailure(pipelineFailureData);
-    
+
     console.log(`   ICM Severity: ${icmReport.severity}`);
     console.log(`   Owning Team: ${icmReport.owningTeam}`);
     console.log(`   Root Cause Category: ${icmReport.rootCauseCategory}`);
@@ -228,7 +228,7 @@ async function generateRealICMReport(): Promise<void> {
     console.log('✅ Validating ICM report...');
     const generator = new ICMReportGenerator();
     const validation = generator.validateForICMCreation(icmReport);
-    
+
     if (validation.valid) {
       console.log('   ✓ Report is valid for ICM creation');
     } else {
@@ -243,10 +243,10 @@ async function generateRealICMReport(): Promise<void> {
     console.log(`Severity: ${icmReport.severity}`);
     console.log(`Owning Team: ${icmReport.owningTeam}`);
     console.log(`Root Cause: ${icmReport.rootCauseCategory}\n`);
-    
+
     console.log('Description:');
     console.log(icmReport.incidentDescription);
-    
+
     console.log('\nMitigation Actions Taken:');
     icmReport.mitigationActions.forEach((action: { action: string; performedBy: string; timestamp: string; effectiveness?: string }, index: number) => {
       console.log(`${index + 1}. ${action.action}`);
@@ -259,7 +259,7 @@ async function generateRealICMReport(): Promise<void> {
     const outputPath = './real-build-failure-icm-report.json';
     generator.exportReport(icmReport, outputPath);
     console.log(`💾 ICM report exported to: ${outputPath}`);
-    
+
     console.log('\n🎯 Key Insights from Real Data:');
     console.log('===============================');
     console.log('• PowerShell Core (pwsh) missing from build environment');
@@ -267,7 +267,7 @@ async function generateRealICMReport(): Promise<void> {
     console.log('• Affects Key Vault access testing pipeline');
     console.log('• Missing test artifacts causing publish failures');
     console.log('• Configuration issue requiring environment update');
-    
+
     console.log('\n🔧 Recommended Actions:');
     console.log('======================');
     console.log('1. Install PowerShell Core on build agents');
@@ -275,9 +275,9 @@ async function generateRealICMReport(): Promise<void> {
     console.log('3. Fix test artifact publishing paths');
     console.log('4. Add pre-build validation for required tools');
     console.log('5. Monitor for similar environment configuration issues');
-    
+
     console.log('\n🎉 Real ICM report generation completed successfully!');
-    
+
   } catch (error) {
     console.error('❌ Error generating real ICM report:', error);
     process.exit(1);
