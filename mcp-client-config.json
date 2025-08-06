@@ -17,14 +17,14 @@
   "aliases": {
     "projects": "core_list_projects",
     "teams": "core_list_project_teams",
-    "builds": "build_get_builds", 
+    "builds": "build_get_builds",
     "failed-builds": "build_get_failed_builds",
     "failure-report": "build_generate_failure_report"
   },
   "quickCommands": [
     {
       "name": "List Projects",
-      "description": "Get all Azure DevOps projects", 
+      "description": "Get all Azure DevOps projects",
       "command": "List my ADO projects"
     },
     {
@@ -38,7 +38,7 @@
       "command": "Generate comprehensive failure report for build #{{buildId}} in project \"{{project}}\""
     },
     {
-      "name": "ICM Report", 
+      "name": "ICM Report",
       "description": "Create ICM report for latest build failure",
       "command": "Please create an ICM report for {{project}} last build failure"
     },

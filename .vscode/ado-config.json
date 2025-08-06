@@ -1,5 +1,5 @@
 {
-  "organization": "AzDevOpsSampleOrg", 
+  "organization": "AzDevOpsSampleOrg",
   "defaultProject": "Project_001",
   "preferences": {
     "maxResults": 100,
@@ -18,7 +18,7 @@
     "projects": "core_list_projects",
     "teams": "core_list_project_teams",
     "builds": "build_get_builds",
-    "failed-builds": "build_get_failed_builds", 
+    "failed-builds": "build_get_failed_builds",
     "failure-report": "build_generate_failure_report",
     "detailed-failures": "build_get_failed_builds_detailed",
     "failure-patterns": "build_get_failed_builds_by_definition"

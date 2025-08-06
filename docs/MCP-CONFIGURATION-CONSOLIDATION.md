@@ -9,7 +9,7 @@ Consolidated all Azure DevOps MCP server configurations into a unified, organize
 - **`mcp.json`** - Root level MCP server configuration (for NPM package distribution)
 - **`.vscode/mcp.json`** - VS Code specific MCP server configuration (for local development)
 
-### Extended Configurations  
+### Extended Configurations
 - **`mcp-client-config.json`** - Extended client configuration with aliases and quick commands
 - **`.vscode/ado-config.json`** - VS Code workspace settings with common prompts and examples
 
@@ -41,7 +41,7 @@ Consolidated all Azure DevOps MCP server configurations into a unified, organize
   "servers": {
     "azure-devops": {
       "type": "stdio",
-      "command": "node", 
+      "command": "node",
       "args": ["./dist/index.js", "${input:ado_org}"],
       "env": {
         "AZURE_DEVOPS_EXT_PAT": "${env:AZURE_DEVOPS_PAT}",
@@ -75,7 +75,7 @@ Consolidated all Azure DevOps MCP server configurations into a unified, organize
 - **Consistent Naming**: No confusion between different server names
 - **Easy Setup**: Default values reduce configuration overhead
 
-### For Teams  
+### For Teams
 - **Standardized Commands**: Consistent command patterns across team members
 - **Documentation**: Built-in examples and common use cases
 - **Scalability**: Easy to add new commands and tools
