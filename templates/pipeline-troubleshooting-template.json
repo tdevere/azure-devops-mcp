@@ -1,0 +1,609 @@
+{
+  "templateName": "Azure DevOps Pipeline Troubleshooting Template",
+  "templateVersion": "1.0.0",
+  "description": "Comprehensive template for collecting pipeline failure information and troubleshooting data",
+  "createdDate": "2025-08-06",
+  "sections": {
+    "customerDetails": {
+      "title": "Customer Details",
+      "required": true,
+      "fields": {
+        "organizationName": {
+          "label": "AzDev Services Org Name",
+          "type": "string",
+          "format": "dev.azure.com/<ORG_NAME>",
+          "required": true,
+          "placeholder": "dev.azure.com/contoso"
+        },
+        "azureBillingSubGuid": {
+          "label": "Azure Billing Subscription GUID",
+          "type": "string",
+          "format": "uuid",
+          "required": false,
+          "placeholder": "12345678-1234-1234-1234-123456789012",
+          "defaultValue": "n/a"
+        },
+        "aadGuid": {
+          "label": "Azure Active Directory GUID",
+          "type": "string",
+          "format": "uuid",
+          "required": false,
+          "placeholder": "87654321-4321-4321-4321-210987654321",
+          "defaultValue": "n/a"
+        },
+        "sourceCodeProvider": {
+          "label": "Source Code Provider",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "Azure Repos",
+            "TFVC",
+            "GitHub",
+            "Other"
+          ],
+          "otherField": {
+            "enabled": true,
+            "label": "Please specify other provider"
+          }
+        }
+      }
+    },
+    "issueDescription": {
+      "title": "Issue Description",
+      "required": true,
+      "fields": {
+        "problemDescription": {
+          "label": "Clear description of the issue",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Describe the issue including any error messages the customer receives"
+        },
+        "errorMessages": {
+          "label": "Error Messages",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "placeholder": "List any specific error messages"
+        },
+        "impactLevel": {
+          "label": "Impact Level",
+          "type": "enum",
+          "options": [
+            "Critical - Complete service down",
+            "High - Major functionality impaired",
+            "Medium - Some functionality affected",
+            "Low - Minor issues"
+          ]
+        }
+      }
+    },
+    "troubleshootingData": {
+      "title": "Troubleshooting Data Collection",
+      "required": true,
+      "fields": {
+        "requiredRuns": {
+          "label": "Required Pipeline Runs",
+          "type": "object",
+          "properties": {
+            "successfulRun": {
+              "label": "A successful run of the pipeline",
+              "type": "object",
+              "properties": {
+                "buildId": {
+                  "type": "number",
+                  "required": true
+                },
+                "buildNumber": {
+                  "type": "string",
+                  "required": true
+                },
+                "url": {
+                  "type": "string",
+                  "format": "url"
+                }
+              }
+            },
+            "firstFailureRun": {
+              "label": "The run containing the first instance of the problem",
+              "type": "object",
+              "properties": {
+                "buildId": {
+                  "type": "number"
+                },
+                "buildNumber": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "url"
+                },
+                "available": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "debugEnabledRun": {
+              "label": "A run demonstrating the problem with system.debug set to true",
+              "type": "object",
+              "required": true,
+              "properties": {
+                "buildId": {
+                  "type": "number",
+                  "required": true
+                },
+                "buildNumber": {
+                  "type": "string",
+                  "required": true
+                },
+                "url": {
+                  "type": "string",
+                  "format": "url"
+                },
+                "debugEnabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "pipelineDetails": {
+          "label": "Pipeline Details (for each affected pipeline)",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "projectName": {
+                "type": "string",
+                "required": true
+              },
+              "pipelineName": {
+                "type": "string",
+                "required": true
+              },
+              "runId": {
+                "type": "number",
+                "required": true
+              },
+              "buildId": {
+                "type": "number"
+              },
+              "releaseId": {
+                "type": "number"
+              },
+              "logsAttached": {
+                "type": "boolean",
+                "default": false
+              },
+              "logsLocation": {
+                "type": "string",
+                "placeholder": "Path or URL to pipeline logs"
+              }
+            }
+          }
+        },
+        "failurePattern": {
+          "label": "Failure Pattern Analysis",
+          "type": "object",
+          "properties": {
+            "failureCount": {
+              "label": "How many times has this failed?",
+              "type": "number",
+              "required": true
+            },
+            "failureFrequency": {
+              "label": "Failure frequency",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "Sporadic",
+                "All runs",
+                "Intermittent",
+                "Time-based pattern"
+              ]
+            },
+            "userImpact": {
+              "label": "Is it happening for all users?",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "All users",
+                "Specific users only",
+                "Random users",
+                "Unknown"
+              ]
+            },
+            "affectedUsers": {
+              "label": "List of affected users (if specific)",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "pipelineConfiguration": {
+          "label": "Pipeline Configuration",
+          "type": "object",
+          "properties": {
+            "exportedDefinition": {
+              "label": "Exported pipeline definition",
+              "type": "string",
+              "format": "file",
+              "description": "JSON or YAML export of the pipeline definition"
+            },
+            "agentPoolType": {
+              "label": "What kind of pool is the agent machine in?",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "Microsoft-hosted",
+                "Self-hosted",
+                "VMSS Pool",
+                "Other"
+              ]
+            },
+            "agentPoolName": {
+              "label": "Agent pool name",
+              "type": "string"
+            },
+            "isVmssPool": {
+              "label": "Is it a VMSS Pool?",
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "taskFailureDetails": {
+      "title": "Task Failure Analysis",
+      "description": "Complete this section if the problem is related to a task failure",
+      "required": false,
+      "condition": "issueType === 'task_failure'",
+      "fields": {
+        "taskInformation": {
+          "label": "Task Information",
+          "type": "object",
+          "properties": {
+            "taskName": {
+              "label": "Task Name and version",
+              "type": "string",
+              "required": true,
+              "placeholder": "e.g., PowerShell@2, AzureCLI@1"
+            },
+            "taskVersion": {
+              "label": "Task version",
+              "type": "string",
+              "required": true
+            }
+          }
+        },
+        "historicalContext": {
+          "label": "Historical Context",
+          "type": "object",
+          "properties": {
+            "whenStarted": {
+              "label": "When did the issue start happening?",
+              "type": "string",
+              "required": true
+            },
+            "everWorked": {
+              "label": "Was it ever working?",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "Yes, was working before",
+                "Never worked",
+                "Unknown"
+              ]
+            },
+            "additionalContext": {
+              "label": "Additional timeline information",
+              "type": "textarea"
+            }
+          }
+        },
+        "failingArtifacts": {
+          "label": "Failing Artifacts",
+          "type": "object",
+          "properties": {
+            "scripts": {
+              "label": "Failing scripts (PowerShell, CMD, Bash)",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "scriptName": {
+                    "type": "string"
+                  },
+                  "scriptType": {
+                    "type": "enum",
+                    "options": ["PowerShell", "CMD", "Bash", "Python", "Other"]
+                  },
+                  "content": {
+                    "type": "string",
+                    "format": "code"
+                  }
+                }
+              }
+            },
+            "armTemplates": {
+              "label": "ARM Templates",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "json"
+              }
+            },
+            "workerLogFiles": {
+              "label": "Worker log files capturing the failure",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "comparativeAnalysis": {
+          "label": "Comparative Analysis",
+          "type": "object",
+          "properties": {
+            "successVsFailure": {
+              "label": "Comparison between successful and failure logs",
+              "type": "textarea",
+              "placeholder": "Document any changes related to agent version, image version, task version"
+            },
+            "changesIdentified": {
+              "label": "Changes identified",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "changeType": {
+                    "type": "enum",
+                    "options": ["Agent version", "Image version", "Task version", "Environment", "Other"]
+                  },
+                  "oldValue": {
+                    "type": "string"
+                  },
+                  "newValue": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "pipelineExecutionIssues": {
+      "title": "Pipeline Execution Issues",
+      "description": "Complete if problem is related to pipelines/stages/jobs/tasks running or not",
+      "required": false,
+      "condition": "issueType === 'execution_issue'",
+      "fields": {
+        "pipelineState": {
+          "label": "Pipeline State",
+          "type": "object",
+          "properties": {
+            "isPaused": {
+              "label": "Is the pipeline paused?",
+              "type": "boolean",
+              "required": true
+            },
+            "pauseReason": {
+              "label": "Reason for pause (if paused)",
+              "type": "string"
+            }
+          }
+        },
+        "nodeAnalysis": {
+          "label": "Node Analysis",
+          "type": "object",
+          "properties": {
+            "evaluatedConditions": {
+              "label": "Evaluated conditions of each node in the graph",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "nodeType": {
+                    "type": "enum",
+                    "options": ["Stage", "Job", "Task", "Step"]
+                  },
+                  "condition": {
+                    "type": "string"
+                  },
+                  "evaluationResult": {
+                    "type": "boolean"
+                  },
+                  "evaluationDetails": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "cancelationTimeouts": {
+              "label": "Cancelation timeouts for each node in the graph",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "timeoutMinutes": {
+                    "type": "number"
+                  },
+                  "timeoutAction": {
+                    "type": "enum",
+                    "options": ["Cancel", "Kill", "None"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "debuggingCompleted": {
+      "title": "Debugging Completed",
+      "required": true,
+      "fields": {
+        "troubleshootingSteps": {
+          "label": "Troubleshooting steps performed",
+          "type": "array",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": {
+                "type": "string",
+                "required": true
+              },
+              "result": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "datetime"
+              },
+              "performedBy": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "toolsUsed": {
+          "label": "Debugging tools used",
+          "type": "array",
+          "items": {
+            "type": "enum",
+            "options": [
+              "Azure DevOps REST API",
+              "Azure CLI",
+              "PowerShell",
+              "Build logs analysis",
+              "Agent logs",
+              "Network traces",
+              "Performance monitoring",
+              "Other"
+            ]
+          }
+        },
+        "dataCollected": {
+          "label": "Data collected during debugging",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dataType": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "escalationRequest": {
+      "title": "Escalation Request",
+      "required": true,
+      "fields": {
+        "requestType": {
+          "label": "What do you need from the EEE/EG?",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "Root cause analysis",
+            "Code review",
+            "Architecture guidance",
+            "Performance analysis",
+            "Bug fix",
+            "Feature request",
+            "Documentation",
+            "Other"
+          ]
+        },
+        "specificAsk": {
+          "label": "Specific request details",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Detailed description of what you need help with"
+        },
+        "urgency": {
+          "label": "Urgency level",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "Critical - Production down",
+            "High - Major impact",
+            "Medium - Moderate impact",
+            "Low - Minor impact"
+          ]
+        },
+        "businessImpact": {
+          "label": "Business impact",
+          "type": "textarea",
+          "placeholder": "Describe the business impact of this issue"
+        },
+        "preferredResolution": {
+          "label": "Preferred resolution timeline",
+          "type": "enum",
+          "options": [
+            "Immediate (within 4 hours)",
+            "Same day",
+            "Within 2-3 days",
+            "Within a week",
+            "No specific timeline"
+          ]
+        }
+      }
+    }
+  },
+  "metadata": {
+    "schemaVersion": "1.0",
+    "lastUpdated": "2025-08-06",
+    "compatibleWith": [
+      "Azure DevOps Server 2022",
+      "Azure DevOps Services"
+    ],
+    "tags": [
+      "troubleshooting",
+      "pipeline",
+      "debugging",
+      "escalation"
+    ]
+  },
+  "integrations": {
+    "azureDevOpsMcp": {
+      "enabled": true,
+      "autoFillFields": [
+        "organizationName",
+        "projectName",
+        "pipelineName",
+        "buildId",
+        "agentPoolType"
+      ],
+      "suggestedTools": [
+        "mcp_ado_build_get_failed_builds",
+        "mcp_ado_build_generate_failure_report",
+        "mcp_ado_build_get_failed_builds_detailed"
+      ]
+    }
+  }
+}
