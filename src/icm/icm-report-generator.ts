@@ -151,36 +151,34 @@ ${troubleshootingText}`;
    * Determine owning team based on failure type and stage
    */
   private determineOwningTeam(failureType: string, failureStage: string): string {
+    // Repository-related issues (check first to override Build/Compilation)
+    if (failureStage === 'Source checkout') {
+      return 'Azure DevOps - Repos';
+    }
+    
     // Infrastructure and agent-related issues
     if (failureType === 'Infrastructure failure' || failureStage === 'Agent allocation') {
       return 'Azure DevOps - Platform';
     }
-
+    
     // Build and pipeline-specific issues
-    if (failureStage === 'Build/Compilation' || failureStage === 'Source checkout') {
+    if (failureStage === 'Build/Compilation') {
       return 'Azure DevOps - Pipelines';
     }
-
-    // Repository-related issues
-    if (failureStage === 'Source checkout') {
-      return 'Azure DevOps - Repos';
-    }
-
+    
     // Test-related issues
     if (failureStage === 'Test execution') {
       return 'Azure DevOps - Test Plans';
     }
-
+    
     // Artifact-related issues
     if (failureStage === 'Artifact handling') {
       return 'Azure DevOps - Artifacts';
     }
-
+    
     // Default to Pipelines team
     return 'Azure DevOps - Pipelines';
-  }
-
-  /**
+  }  /**
    * Categorize root cause based on failure type
    */
   private categorizeRootCause(failureType: string): string {
@@ -216,8 +214,43 @@ ${troubleshootingText}`;
       action: step.step,
       timestamp: step.timestamp || new Date().toISOString(),
       performedBy: step.performedBy || 'Support Engineer',
-      effectiveness: step.result ? (step.result.includes('success') ? 'Effective' : 'Not effective') : 'Unknown'
+      effectiveness: step.result ? this.determineEffectiveness(step.result) : 'Unknown'
     }));
+  }
+
+  /**
+   * Determine effectiveness of a mitigation action based on the result
+   */
+  private determineEffectiveness(result: string): string {
+    const resultLower = result.toLowerCase();
+    
+    // Positive indicators (actions that resolve or improve the situation)
+    const positiveTerms = ['success', 'resolved', 'fixed', 'working', 'completed', 'effective', 'restored', 'online', 'back online', 'resumed', 'updated', 'corrected', 'restarted'];
+    const hasPositiveTerms = positiveTerms.some(term => resultLower.includes(term));
+    
+    // Negative indicators (actions that failed or found problems without solving them)
+    const negativeTerms = ['failed', 'error', 'timeout', 'unavailable', 'offline', 'not working', 'unsuccessful', 'found', 'discovered', 'identified', 'detected'];
+    const hasNegativeTerms = negativeTerms.some(term => resultLower.includes(term));
+    
+    // Special case: if it says "successfully" it's definitely effective
+    if (resultLower.includes('successfully')) {
+      return 'Effective';
+    }
+    
+    // If it found a problem but didn't fix it, it's diagnostic but not effective as mitigation
+    if (resultLower.includes('found') || resultLower.includes('discovered') || resultLower.includes('identified')) {
+      return 'Not effective';
+    }
+    
+    if (hasPositiveTerms && !hasNegativeTerms) {
+      return 'Effective';
+    } else if (hasNegativeTerms && !hasPositiveTerms) {
+      return 'Not effective';
+    } else if (resultLower.includes('partial')) {
+      return 'Partial';
+    } else {
+      return 'Unknown';
+    }
   }
 
   /**
