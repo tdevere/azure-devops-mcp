@@ -1,0 +1,45 @@
+{
+  "incidentSummary": "Pipeline failure in AzDevOpsSampleOrg: Configuration error affecting 50 users",
+  "incidentDescription": "Pipeline failures detected in organization AzDevOpsSampleOrg.\n\nFailure Details:\n- Stage: Test execution\n- Type: Configuration error\n- Impact Level: High - Major functionality impaired\n- Affected Users: 50\n\nError Messages:\n- Unable to locate executable file: 'pwsh'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable.\n- Publishing build artifacts failed with an error: Not found PathtoPublish: /mnt/vss/_work/_temp/keyvault-test-results.txt\n\nTroubleshooting performed:\n- Analyzed build failure report using Azure DevOps MCP tools: Found test_failure with confidence score 0.8\n- Identified root cause analysis: PowerShell Core (pwsh) not available in build environment\n- Checked failure frequency pattern: Found 6 occurrences in last 7 days, pattern detected: true\n- Analyzed task 'PowerShell' failure: Error: Unable to locate executable file: 'pwsh'. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable.\n- Analyzed task 'PublishBuildArtifacts' failure: Error: Publishing build artifacts failed with an error: Not found PathtoPublish: /mnt/vss/_work/_temp/keyvault-test-results.txt",
+  "severity": "Sev2",
+  "owningTeam": "Azure DevOps - Test Plans",
+  "rootCauseCategory": "Configuration error",
+  "mitigationActions": [
+    {
+      "action": "Analyzed build failure report using Azure DevOps MCP tools",
+      "timestamp": "2025-08-06T16:17:27.917Z",
+      "performedBy": "Azure DevOps MCP System",
+      "effectiveness": "Not effective"
+    },
+    {
+      "action": "Identified root cause analysis",
+      "timestamp": "2025-08-06T16:17:27.917Z",
+      "performedBy": "Azure DevOps MCP System",
+      "effectiveness": "Unknown"
+    },
+    {
+      "action": "Checked failure frequency pattern",
+      "timestamp": "2025-08-06T16:17:27.917Z",
+      "performedBy": "Azure DevOps MCP System",
+      "effectiveness": "Not effective"
+    },
+    {
+      "action": "Analyzed task 'PowerShell' failure",
+      "timestamp": "2025-08-01T21:17:22.893Z",
+      "performedBy": "Azure DevOps MCP System",
+      "effectiveness": "Not effective"
+    },
+    {
+      "action": "Analyzed task 'PublishBuildArtifacts' failure",
+      "timestamp": "2025-08-01T21:17:20.836Z",
+      "performedBy": "Azure DevOps MCP System",
+      "effectiveness": "Not effective"
+    }
+  ],
+  "communicationPlan": {
+    "customerNotification": false,
+    "internalNotification": true,
+    "escalationRequired": false,
+    "publicStatusPage": false
+  }
+}

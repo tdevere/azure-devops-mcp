@@ -5,7 +5,7 @@
 // This script demonstrates how to integrate the ICM report generator with
 // Azure DevOps MCP tools to automatically create incident reports
 
-import { ICMReportGenerator, PipelineFailureData, createICMReportFromFailure } from '../src/icm/icm-report-generator';
+import { ICMReportGenerator, PipelineFailureData, createICMReportFromFailure } from '../src/icm/icm-report-generator.js';
 
 /**
  * Simulate getting pipeline failure data from Azure DevOps MCP tools
@@ -108,7 +108,7 @@ async function generateICMReportExample(): Promise<void> {
     console.log(icmReport.incidentDescription);
 
     console.log('\nMitigation Actions:');
-    icmReport.mitigationActions.forEach((action, index) => {
+    icmReport.mitigationActions.forEach((action: { action: string; performedBy: string; timestamp: string; effectiveness?: string }, index: number) => {
       console.log(`${index + 1}. ${action.action}`);
       console.log(`   Performed by: ${action.performedBy}`);
       console.log(`   Time: ${action.timestamp}`);
@@ -162,7 +162,7 @@ async function integrateWithMCPTools(): Promise<void> {
 }
 
 // Run the example
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   generateICMReportExample()
     .then(() => integrateWithMCPTools())
     .catch(error => {

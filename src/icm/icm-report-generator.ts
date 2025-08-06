@@ -6,6 +6,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface ICMReportData {
   incidentSummary: string;
@@ -61,7 +65,7 @@ export class ICMReportGenerator {
   }
 
   private loadTemplate(): void {
-    const templatePath = path.join(__dirname, '../../templates/pipeline-troubleshooting-template.json');
+    const templatePath = path.join(__dirname, '../../../templates/pipeline-troubleshooting-template.json');
     try {
       const templateData = fs.readFileSync(templatePath, 'utf8');
       this.template = JSON.parse(templateData) as TemplateData;
@@ -155,27 +159,27 @@ ${troubleshootingText}`;
     if (failureStage === 'Source checkout') {
       return 'Azure DevOps - Repos';
     }
-    
+
     // Infrastructure and agent-related issues
     if (failureType === 'Infrastructure failure' || failureStage === 'Agent allocation') {
       return 'Azure DevOps - Platform';
     }
-    
+
     // Build and pipeline-specific issues
     if (failureStage === 'Build/Compilation') {
       return 'Azure DevOps - Pipelines';
     }
-    
+
     // Test-related issues
     if (failureStage === 'Test execution') {
       return 'Azure DevOps - Test Plans';
     }
-    
+
     // Artifact-related issues
     if (failureStage === 'Artifact handling') {
       return 'Azure DevOps - Artifacts';
     }
-    
+
     // Default to Pipelines team
     return 'Azure DevOps - Pipelines';
   }  /**
@@ -223,25 +227,25 @@ ${troubleshootingText}`;
    */
   private determineEffectiveness(result: string): string {
     const resultLower = result.toLowerCase();
-    
+
     // Positive indicators (actions that resolve or improve the situation)
     const positiveTerms = ['success', 'resolved', 'fixed', 'working', 'completed', 'effective', 'restored', 'online', 'back online', 'resumed', 'updated', 'corrected', 'restarted'];
     const hasPositiveTerms = positiveTerms.some(term => resultLower.includes(term));
-    
+
     // Negative indicators (actions that failed or found problems without solving them)
     const negativeTerms = ['failed', 'error', 'timeout', 'unavailable', 'offline', 'not working', 'unsuccessful', 'found', 'discovered', 'identified', 'detected'];
     const hasNegativeTerms = negativeTerms.some(term => resultLower.includes(term));
-    
+
     // Special case: if it says "successfully" it's definitely effective
     if (resultLower.includes('successfully')) {
       return 'Effective';
     }
-    
+
     // If it found a problem but didn't fix it, it's diagnostic but not effective as mitigation
     if (resultLower.includes('found') || resultLower.includes('discovered') || resultLower.includes('identified')) {
       return 'Not effective';
     }
-    
+
     if (hasPositiveTerms && !hasNegativeTerms) {
       return 'Effective';
     } else if (hasNegativeTerms && !hasPositiveTerms) {

@@ -1,0 +1,39 @@
+{
+  "incidentSummary": "Pipeline failure in contoso-corp: Infrastructure failure affecting 275 users",
+  "incidentDescription": "Pipeline failures detected in organization contoso-corp.\n\nFailure Details:\n- Stage: Agent allocation\n- Type: Infrastructure failure\n- Impact Level: High - Major functionality impaired\n- Affected Users: 275\n\nError Messages:\n- No agents available in pool \"Build-Pool-Production\"\n- Agent allocation timeout after 10 minutes\n- Pool capacity exceeded: 0/50 agents available\n\nTroubleshooting performed:\n- Checked agent pool status using Azure DevOps REST API: All 50 agents in offline state\n- Investigated agent pool infrastructure: VMSS scale set experiencing connectivity issues\n- Initiated agent pool recovery procedure: Restarted VMSS instances, 35/50 agents back online\n- Monitored pipeline queue processing: Queue backlog processing resumed, estimated clear time 2 hours",
+  "severity": "Sev2",
+  "owningTeam": "Azure DevOps - Platform",
+  "rootCauseCategory": "Infrastructure failure",
+  "mitigationActions": [
+    {
+      "action": "Checked agent pool status using Azure DevOps REST API",
+      "timestamp": "2025-08-06T14:30:00Z",
+      "performedBy": "Azure DevOps Support",
+      "effectiveness": "Not effective"
+    },
+    {
+      "action": "Investigated agent pool infrastructure",
+      "timestamp": "2025-08-06T14:45:00Z",
+      "performedBy": "Infrastructure Team",
+      "effectiveness": "Unknown"
+    },
+    {
+      "action": "Initiated agent pool recovery procedure",
+      "timestamp": "2025-08-06T15:00:00Z",
+      "performedBy": "Infrastructure Team",
+      "effectiveness": "Effective"
+    },
+    {
+      "action": "Monitored pipeline queue processing",
+      "timestamp": "2025-08-06T15:15:00Z",
+      "performedBy": "Azure DevOps Support",
+      "effectiveness": "Effective"
+    }
+  ],
+  "communicationPlan": {
+    "customerNotification": true,
+    "internalNotification": true,
+    "escalationRequired": false,
+    "publicStatusPage": false
+  }
+}

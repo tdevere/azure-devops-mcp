@@ -30,6 +30,7 @@
     "inspect": "ALLOWED_ORIGINS=http://127.0.0.1:6274 npx @modelcontextprotocol/inspector node dist/index.js",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "example:icm": "node dist/examples/icm-report-example.js",
+    "example:real": "node dist/examples/real-icm-report.js",
     "eslint": "eslint",
     "eslint-fix": "eslint --fix",
     "format": "prettier --write .",
