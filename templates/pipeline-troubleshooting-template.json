@@ -1,8 +1,19 @@
 {
-  "templateName": "Azure DevOps Pipeline Troubleshooting Template",
-  "templateVersion": "1.0.0",
-  "description": "Comprehensive template for collecting pipeline failure information and troubleshooting data",
+  "templateName": "Azure DevOps Pipeline Failure ICM Report Template",
+  "templateVersion": "2.0.0",
+  "description": "Comprehensive template for collecting pipeline failure information and generating ICM reports for Azure DevOps incidents",
   "createdDate": "2025-08-06",
+  "icmIntegration": {
+    "enabled": true,
+    "autoGenerateTitle": true,
+    "severityMapping": {
+      "Critical - Complete service down": "Sev1",
+      "High - Major functionality impaired": "Sev2",
+      "Medium - Some functionality affected": "Sev3",
+      "Low - Minor issues": "Sev4"
+    },
+    "requiredFields": ["organizationName", "problemDescription", "impactLevel", "businessImpact"]
+  },
   "sections": {
     "customerDetails": {
       "title": "Customer Details",
@@ -69,12 +80,45 @@
         "impactLevel": {
           "label": "Impact Level",
           "type": "enum",
+          "required": true,
           "options": [
             "Critical - Complete service down",
             "High - Major functionality impaired",
             "Medium - Some functionality affected",
             "Low - Minor issues"
           ]
+        },
+        "affectedUsers": {
+          "label": "Number of affected users/teams",
+          "type": "number",
+          "required": true
+        },
+        "geographicImpact": {
+          "label": "Geographic impact",
+          "type": "enum",
+          "options": [
+            "Global",
+            "Regional",
+            "Single datacenter",
+            "Organization-specific"
+          ]
+        },
+        "serviceComponents": {
+          "label": "Affected Azure DevOps service components",
+          "type": "array",
+          "items": {
+            "type": "enum",
+            "options": [
+              "Azure Pipelines",
+              "Azure Repos",
+              "Azure Boards",
+              "Azure Test Plans",
+              "Azure Artifacts",
+              "Build agents",
+              "Release management",
+              "Service connections"
+            ]
+          }
         }
       }
     },
@@ -248,11 +292,80 @@
             },
             "agentPoolName": {
               "label": "Agent pool name",
-              "type": "string"
+              "type": "string",
+              "required": true
             },
             "isVmssPool": {
               "label": "Is it a VMSS Pool?",
               "type": "boolean"
+            },
+            "agentVersion": {
+              "label": "Agent version",
+              "type": "string"
+            },
+            "osType": {
+              "label": "Operating system",
+              "type": "enum",
+              "options": ["Windows", "Linux", "macOS"]
+            },
+            "imageType": {
+              "label": "Agent image type",
+              "type": "string",
+              "placeholder": "e.g., ubuntu-latest, windows-2022, macOS-latest"
+            }
+          }
+        },
+        "pipelineFailureAnalysis": {
+          "label": "Pipeline Failure Analysis",
+          "type": "object",
+          "required": true,
+          "properties": {
+            "failureStage": {
+              "label": "Stage where failure occurred",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "Queue/Scheduling",
+                "Agent allocation",
+                "Source checkout",
+                "Build/Compilation",
+                "Test execution",
+                "Deployment",
+                "Post-build cleanup",
+                "Variable resolution",
+                "Service connection",
+                "Artifact handling"
+              ]
+            },
+            "failureType": {
+              "label": "Type of failure",
+              "type": "enum",
+              "required": true,
+              "options": [
+                "Infrastructure failure",
+                "Code/compilation error",
+                "Test failure",
+                "Configuration error",
+                "Network/connectivity issue",
+                "Permission/authentication error",
+                "Resource constraint",
+                "Timeout",
+                "External dependency failure"
+              ]
+            },
+            "errorCodes": {
+              "label": "Specific error codes or exit codes",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "failureSymptoms": {
+              "label": "Observable failure symptoms",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }
@@ -573,6 +686,168 @@
           ]
         }
       }
+    },
+    "icmReportGeneration": {
+      "title": "ICM Report Generation",
+      "description": "Information required for generating an Incident Management report",
+      "required": true,
+      "fields": {
+        "incidentSummary": {
+          "label": "Incident summary (auto-generated if empty)",
+          "type": "string",
+          "maxLength": 200,
+          "autoGenerate": true,
+          "template": "Pipeline failure in {{organizationName}}: {{failureType}} affecting {{affectedUsers}} users"
+        },
+        "incidentDescription": {
+          "label": "Detailed incident description",
+          "type": "textarea",
+          "required": true,
+          "autoGenerate": true,
+          "template": "Pipeline failures detected in organization {{organizationName}}.\n\nFailure Details:\n- Stage: {{failureStage}}\n- Type: {{failureType}}\n- Error Messages: {{errorMessages}}\n- Impact Level: {{impactLevel}}\n- Affected Users: {{affectedUsers}}\n\nTroubleshooting performed:\n{{troubleshootingSteps}}"
+        },
+        "severity": {
+          "label": "ICM Severity",
+          "type": "enum",
+          "required": true,
+          "autoMap": "impactLevel",
+          "options": [
+            "Sev1 - Critical service down",
+            "Sev2 - Major functionality impaired",
+            "Sev3 - Some functionality affected",
+            "Sev4 - Minor issues"
+          ]
+        },
+        "owningTeam": {
+          "label": "Owning team for incident",
+          "type": "enum",
+          "required": true,
+          "options": [
+            "Azure DevOps - Pipelines",
+            "Azure DevOps - Repos",
+            "Azure DevOps - Boards",
+            "Azure DevOps - Test Plans",
+            "Azure DevOps - Artifacts",
+            "Azure DevOps - Platform",
+            "Azure Infrastructure"
+          ]
+        },
+        "rootCauseCategory": {
+          "label": "Root cause category",
+          "type": "enum",
+          "options": [
+            "Code defect",
+            "Configuration error",
+            "Infrastructure failure",
+            "Capacity issue",
+            "External dependency",
+            "Security issue",
+            "Process failure",
+            "Human error",
+            "Under investigation"
+          ]
+        },
+        "mitigationActions": {
+          "label": "Immediate mitigation actions taken",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "required": true
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "datetime"
+              },
+              "performedBy": {
+                "type": "string"
+              },
+              "effectiveness": {
+                "type": "enum",
+                "options": ["Effective", "Partial", "Not effective", "Unknown"]
+              }
+            }
+          }
+        },
+        "communicationPlan": {
+          "label": "Communication and notification plan",
+          "type": "object",
+          "properties": {
+            "customerNotification": {
+              "label": "Customer notification required",
+              "type": "boolean",
+              "default": false
+            },
+            "internalNotification": {
+              "label": "Internal team notification",
+              "type": "boolean",
+              "default": true
+            },
+            "escalationRequired": {
+              "label": "Escalation to leadership required",
+              "type": "boolean"
+            },
+            "publicStatusPage": {
+              "label": "Update public status page",
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "resolutionTracking": {
+      "title": "Resolution Tracking",
+      "description": "Track resolution progress and follow-up actions",
+      "required": false,
+      "fields": {
+        "resolutionStatus": {
+          "label": "Current resolution status",
+          "type": "enum",
+          "options": [
+            "Investigating",
+            "Root cause identified",
+            "Fix in progress",
+            "Fix deployed",
+            "Monitoring",
+            "Resolved",
+            "Closed"
+          ]
+        },
+        "estimatedResolution": {
+          "label": "Estimated time to resolution",
+          "type": "string"
+        },
+        "followUpActions": {
+          "label": "Required follow-up actions",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "required": true
+              },
+              "owner": {
+                "type": "string"
+              },
+              "dueDate": {
+                "type": "string",
+                "format": "date"
+              },
+              "priority": {
+                "type": "enum",
+                "options": ["High", "Medium", "Low"]
+              }
+            }
+          }
+        },
+        "lessonsLearned": {
+          "label": "Lessons learned and process improvements",
+          "type": "textarea"
+        }
+      }
     }
   },
   "metadata": {
@@ -597,12 +872,85 @@
         "projectName",
         "pipelineName",
         "buildId",
-        "agentPoolType"
+        "agentPoolType",
+        "agentPoolName",
+        "agentVersion",
+        "failureStage",
+        "errorCodes"
       ],
       "suggestedTools": [
         "mcp_ado_build_get_failed_builds",
         "mcp_ado_build_generate_failure_report",
-        "mcp_ado_build_get_failed_builds_detailed"
+        "mcp_ado_build_get_failed_builds_detailed",
+        "mcp_ado_build_get_failed_builds_by_definition"
+      ]
+    },
+    "icmIntegration": {
+      "enabled": true,
+      "autoCreateIncident": false,
+      "templateMapping": {
+        "title": "incidentSummary",
+        "description": "incidentDescription",
+        "severity": "severity",
+        "owningTeam": "owningTeam",
+        "rootCause": "rootCauseCategory"
+      },
+      "requiredForCreation": [
+        "incidentSummary",
+        "incidentDescription",
+        "severity",
+        "owningTeam"
+      ]
+    },
+    "notificationChannels": {
+      "teams": {
+        "enabled": true,
+        "channels": [
+          "azure-devops-alerts",
+          "pipeline-failures",
+          "incident-management"
+        ]
+      },
+      "email": {
+        "enabled": true,
+        "distributionLists": [
+          "azdevops-oncall@microsoft.com",
+          "pipeline-support@microsoft.com"
+        ]
+      }
+    }
+  },
+  "automationRules": {
+    "autoSeverityMapping": {
+      "enabled": true,
+      "rules": [
+        {
+          "condition": "affectedUsers > 1000",
+          "setSeverity": "Sev1 - Critical service down"
+        },
+        {
+          "condition": "affectedUsers > 100 && failureType === 'Infrastructure failure'",
+          "setSeverity": "Sev2 - Major functionality impaired"
+        },
+        {
+          "condition": "geographicImpact === 'Global'",
+          "setSeverity": "Sev1 - Critical service down"
+        }
+      ]
+    },
+    "autoEscalation": {
+      "enabled": true,
+      "rules": [
+        {
+          "condition": "severity === 'Sev1' && resolutionStatus !== 'Resolved'",
+          "escalateAfter": "1 hour",
+          "escalateTo": "leadership"
+        },
+        {
+          "condition": "severity === 'Sev2' && resolutionStatus !== 'Resolved'",
+          "escalateAfter": "4 hours",
+          "escalateTo": "senior-engineers"
+        }
       ]
     }
   }
