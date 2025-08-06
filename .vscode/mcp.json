@@ -3,16 +3,18 @@
     {
       "id": "ado_org",
       "type": "promptString",
-      "description": "Azure DevOps organization name (e.g. 'contoso')"
+      "description": "Azure DevOps organization name (e.g. 'contoso')",
+      "default": "AzDevOpsSampleOrg"
     }
   ],
   "servers": {
-    "ado": {
+    "azure-devops": {
       "type": "stdio",
       "command": "node",
       "args": ["./dist/index.js", "${input:ado_org}"],
       "env": {
-        "AZURE_DEVOPS_EXT_PAT": "${env:AZURE_DEVOPS_PAT}"
+        "AZURE_DEVOPS_EXT_PAT": "${env:AZURE_DEVOPS_PAT}",
+        "AZURE_DEVOPS_ORG_URL": "https://dev.azure.com/${input:ado_org}"
       }
     }
   }

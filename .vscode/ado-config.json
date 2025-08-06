@@ -1,40 +1,33 @@
 {
-  "organization": "your-org-name",
-  "defaultProject": "your-default-project",
+  "organization": "AzDevOpsSampleOrg", 
+  "defaultProject": "Project_001",
   "preferences": {
     "maxResults": 100,
     "includeDetails": true,
     "defaultStateFilter": "wellFormed",
     "autoRefresh": true
   },
-  "prompts": {
-    "listProjects": "get list of ado projects",
-    "listTeams": "get list of teams for project {{defaultProject}}",
-    "failedBuilds": "show me failed builds in {{defaultProject}}",
-    "generateReport": "generate failure report for build {{buildId}} in {{defaultProject}}"
+  "commonPrompts": {
+    "listProjects": "List my ADO projects",
+    "listTeams": "Get list of teams for project {{defaultProject}}",
+    "failedBuilds": "Show me failed builds in {{defaultProject}}",
+    "generateReport": "Generate failure report for build {{buildId}} in {{defaultProject}}",
+    "icmReport": "Please create an ICM report for {{defaultProject}} last build failure"
   },
-  "aliases": {
+  "toolAliases": {
     "projects": "core_list_projects",
     "teams": "core_list_project_teams",
     "builds": "build_get_builds",
-    "failed-builds": "build_get_failed_builds",
-    "failure-report": "build_generate_failure_report"
+    "failed-builds": "build_get_failed_builds", 
+    "failure-report": "build_generate_failure_report",
+    "detailed-failures": "build_get_failed_builds_detailed",
+    "failure-patterns": "build_get_failed_builds_by_definition"
   },
-  "quickCommands": [
-    {
-      "name": "List Projects",
-      "description": "Get all Azure DevOps projects",
-      "command": "get list of ado projects"
-    },
-    {
-      "name": "Failed Builds",
-      "description": "Show recent failed builds",
-      "command": "show me the last 10 failed builds in project \"{{defaultProject}}\""
-    },
-    {
-      "name": "Build Analysis",
-      "description": "Generate failure report for a specific build",
-      "command": "generate comprehensive failure report for build #{{input:buildId}} in project \"{{defaultProject}}\""
-    }
+  "exampleCommands": [
+    "List my ADO projects",
+    "Show me the last 10 failed builds in project \"Project_001\"",
+    "Generate comprehensive failure report for build #1380 in project \"Project_001\"",
+    "Please create an ICM report for Project_001 last build failure",
+    "Group failed builds by pipeline definition for \"Project_001\" in the last 7 days"
   ]
 }

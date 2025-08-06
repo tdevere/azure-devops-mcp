@@ -122,7 +122,7 @@ For specific builds or timeframes:
     "status": "Active",
     "assignedTeam": "Azure DevOps Test Plans",
     "description": "Critical recurring failure due to PowerShell Core configuration issues...",
-    
+
     "technicalDetails": {
       "organizationName": "AzDevOpsSampleOrg",
       "projectName": "Project_001",
@@ -130,7 +130,7 @@ For specific builds or timeframes:
       "buildNumber": "20250801.7",
       "rootCause": "PowerShell Core executable not available on agent"
     },
-    
+
     "impactAssessment": {
       "affectedUsers": 50,
       "impactLevel": "High - Major functionality impaired",
@@ -141,7 +141,7 @@ For specific builds or timeframes:
         "patternDetected": true
       }
     },
-    
+
     "resolutionPlan": {
       "immediateActions": [
         {

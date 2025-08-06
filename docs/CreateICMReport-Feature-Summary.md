@@ -94,7 +94,7 @@ Successfully implemented the **CreateICMReport feature** for Azure DevOps pipeli
 ### 6. Package Configuration
 **File**: `package.json`
 
-- **Added Scripts**: 
+- **Added Scripts**:
   - `npm run example:icm` - Run the ICM report example
   - `npm run example:real` - Run real organizational data example
 - **Build Integration**: ICM report generator included in TypeScript compilation

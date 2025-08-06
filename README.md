@@ -58,7 +58,7 @@ Generate enterprise-grade **Incident Management (ICM) reports** instantly from a
 - 📊 **Risk mitigation strategies** and prevention measures
 - 🤖 **Automation recommendations** for faster resolution
 
-**Try it:** 
+**Try it:**
 - `"Please create an ICM report for Project_001 last build failure"`
 - `"Generate an ICM report for build 1380 in project MyProject"`
 
@@ -154,7 +154,7 @@ Interact with these Azure DevOps services:
 **Transform any build failure into a professional incident management report with a single prompt:**
 
 - **🎯 Instant ICM Reports**: Generate enterprise-grade incident reports from build failures
-- **📋 Complete Documentation**: Automated severity assessment, team assignment, and business impact analysis  
+- **📋 Complete Documentation**: Automated severity assessment, team assignment, and business impact analysis
 - **⚡ Action Plans**: Immediate and long-term resolution steps with time estimates
 - **🔗 Pattern Recognition**: Correlate related incidents and detect recurring issues
 - **🤖 Smart Automation**: Intelligent recommendations for prevention and monitoring
